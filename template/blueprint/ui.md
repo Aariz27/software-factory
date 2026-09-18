@@ -5,7 +5,7 @@
 > `/plan` reads this. `/prototype ui` renders a static mockup from it.
 
 ## Look and feel in words
-Palette, type, density, mood, what it should NOT look like:
+Palette, type, density, mood, what it should not look like:
 
 ## Reference images
 | File in `blueprint/mockups/` | What to take from it |
