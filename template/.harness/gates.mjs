@@ -125,7 +125,7 @@ const gates = {
       for (const s of ["## Commands", "## Evidence", "## Findings", "## Remaining risk"])
         if (bullets(section(text, s)).length === 0) problems.push(`section ${s} has no entry`);
       const ledger = read("blueprint/context/findings.md") ?? "";
-      for (const m of ledger.matchAll(/^###\s+(F-\d+)\s+\[(P[01])\]\s+(open|fixed)\b.*$/gm))
+      for (const m of ledger.matchAll(/^###\s+(F-\d+)\s+\[(P[01])\]\s+(open|fixed)\b.*$/gim))
         problems.push(`verdict is passed but ${m[1]} [${m[2]}] is still ${m[3]} in findings.md`);
     } else if (verdict === "changes-requested") {
       if (findings.length === 0 && check !== "failed")
