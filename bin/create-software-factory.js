@@ -138,18 +138,21 @@ function main() {
   const written = [], skipped = [], manifest = {};
   for (const src of files) {
     const rel = relative(TEMPLATE_DIR, src);
-    const dst = join(target, rel);
+    // npm never publishes a nested .gitignore (or .npmignore), so the source
+    // file is named "gitignore" and renamed on the way out.
+    const destRel = rel === "gitignore" ? ".gitignore" : rel;
+    const dst = join(target, destRel);
     const buf = readFileSync(src);
-    manifest[rel] = sha256(buf);
+    manifest[destRel] = sha256(buf);
     if (existsSync(dst) && !opts.force) {
-      skipped.push(rel);
+      skipped.push(destRel);
       continue;
     }
     if (!opts.dryRun) {
       mkdirSync(dirname(dst), { recursive: true });
       writeFileSync(dst, buf);
     }
-    written.push(rel);
+    written.push(destRel);
   }
 
   const manifestPath = join(target, "blueprint", ".state", "manifest.json");

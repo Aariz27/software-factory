@@ -1,0 +1,12 @@
+# A1 Harness generated state — never part of a feature commit.
+# Blueprint itself ships no .gitignore for these; this file is copied into
+# every installed project by bin/create-software-factory.js like any other
+# template file (skipped if the project already has its own .gitignore,
+# same as every other managed file).
+blueprint/.state/run.json
+blueprint/.state/trace.db
+blueprint/.state/trace.db-wal
+blueprint/.state/trace.db-shm
+blueprint/.state/usage.json
+blueprint/.state/host-session.json
+blueprint/.state/sf.lock
