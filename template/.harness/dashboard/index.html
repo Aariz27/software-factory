@@ -1,178 +1,364 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A1 Harness</title>
 <style>
-  :root { --bg:#0d0f12; --panel:#15181d; --line:#262a31; --text:#e6e6e6; --dim:#6b7280; --mid:#9ca3af; --yellow:#e0b44a; --red:#e5484d; --green:#3fb950; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 "JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace; }
-  header { position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px 22px; align-items:center; }
-  header .brand { font-weight:700; letter-spacing:.08em; }
-  .pill { display:inline-flex; align-items:center; gap:6px; padding:2px 10px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--mid); }
-  .pill b { color:var(--text); font-weight:600; }
-  .dot { width:8px; height:8px; border-radius:50%; background:var(--dim); }
-  .live .dot { background:var(--green); box-shadow:0 0 8px var(--green); }
-  .stale .dot { background:var(--red); }
-  .live b.state { color:var(--green); } .stale b.state { color:var(--red); }
-  main { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:14px; padding:16px; }
-  section { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 16px; min-width:0; }
-  section h2 { margin:0 0 10px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); font-weight:600; display:flex; justify-content:space-between; }
-  section h2 span { letter-spacing:0; text-transform:none; color:var(--mid); }
-  .empty { color:var(--dim); font-style:italic; }
-  ul { list-style:none; margin:0; padding:0; } li { padding:3px 0; border-top:1px solid var(--line); } li:first-child { border-top:0; }
-  .row { display:flex; gap:10px; justify-content:space-between; align-items:baseline; }
-  .k { color:var(--dim); } .y { color:var(--yellow); } .r { color:var(--red); } .g { color:var(--green); } .m { color:var(--mid); }
-  .bar { height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin-top:4px; }
-  .bar i { display:block; height:100%; background:var(--yellow); }
-  .bar.hot i { background:var(--red); }
-  .stat { font-size:26px; font-weight:600; line-height:1.1; }
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; }
-  .tree li { border:0; padding:2px 0; } .tree .child { padding-left:18px; }
-  table { width:100%; border-collapse:collapse; font-size:12.5px; } td, th { text-align:left; padding:3px 6px 3px 0; border-top:1px solid var(--line); vertical-align:top; } th { color:var(--dim); font-weight:500; border-top:0; }
-  .mono-sm { font-size:12px; color:var(--mid); word-break:break-all; }
-  @media (max-width:520px) { main { padding:12px; gap:10px; } header { padding:10px 12px; } }
+  :root{ --bg:#0d0f12; --card:#15181d; --border:#262a31; --text:#e6e6e6; --dim:#8b9099; --amber:#e0b44a; --red:#e5484d; --green:#3fb950; --grey:#6b7280; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:"SF Mono","Menlo","Consolas","Liberation Mono",monospace; font-size:13px; line-height:1.5; min-height:100vh; overflow-x:hidden; }
+  .layout{ display:flex; min-height:100vh; width:100%; }
+
+  /* ---------- RAIL ---------- */
+  .rail{ width:260px; min-width:260px; background:#101318; border-right:1px solid var(--border); padding:20px 16px; display:flex; flex-direction:column; gap:22px; position:sticky; top:0; align-self:flex-start; height:100vh; overflow-y:auto; }
+  .brand{ font-size:16px; font-weight:700; letter-spacing:1.5px; color:var(--text); }
+  .live-row{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dim); }
+  .live-row .state{ font-weight:700; }
+  .dot{ width:8px;height:8px;border-radius:50%; background:var(--grey); flex-shrink:0; }
+  .live .dot{ background:var(--green); }
+  .stale .dot{ background:var(--red); }
+  .live .state{ color:var(--green); } .stale .state{ color:var(--red); } .connecting .state{ color:var(--grey); }
+  @media (prefers-reduced-motion: no-preference){ .live .dot{ animation: pulseGreen 2s ease-in-out infinite; } }
+  @keyframes pulseGreen{ 0%,100%{ box-shadow:0 0 0 0 rgba(63,185,80,.55); } 50%{ box-shadow:0 0 0 5px rgba(63,185,80,0); } }
+  .rail-section{ border-top:1px solid var(--border); padding-top:14px; }
+  .rail-section:first-of-type{ border-top:none; padding-top:0; }
+  .rail-label{ font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); margin-bottom:10px; }
+  .repo-line{ font-size:11.5px; color:var(--dim); word-break:break-all; }
+  .repo-line b{ color:var(--text); font-weight:600; }
+  .repo-line + .repo-line{ margin-top:4px; }
+  .cli-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+  .cli-chip{ font-size:11px; padding:2px 7px; border:1px solid var(--border); border-radius:5px; color:var(--dim); }
+  .cli-chip.found{ color:var(--text); border-color:#3a4049; }
+  .sub-bars{ display:flex; gap:10px; align-items:flex-end; height:90px; margin-top:6px; }
+  .sub-bar-col{ display:flex; flex-direction:column; align-items:center; justify-content:flex-end; flex:1; height:100%; gap:5px; min-width:0; }
+  .sub-bar-track{ width:10px; flex:1; background:#1c2026; border-radius:4px; display:flex; align-items:flex-end; overflow:hidden; }
+  .sub-bar-fill{ width:100%; border-radius:4px; transition:height .6s ease; background:var(--green); }
+  .sub-bar-fill.hot{ background:var(--red); }
+  .sub-bar-fill.none{ background:var(--grey); }
+  @media (prefers-reduced-motion: no-preference){ .sub-bar-fill.hot{ animation: hotPulse 1.6s ease-in-out infinite; } }
+  @keyframes hotPulse{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.35); } }
+  .sub-bar-name{ font-size:9px; color:var(--dim); text-align:center; line-height:1.2; max-width:56px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sub-bar-pct{ font-size:10px; color:var(--text); }
+  .sub-bar-pct.hot{ color:var(--red); } .sub-bar-pct.none{ color:var(--dim); }
+  .sub-detail{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .sub-detail-row{ font-size:10.5px; color:var(--dim); display:flex; justify-content:space-between; gap:6px; }
+  .sub-detail-row .sname{ color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sub-detail-row .sval{ text-align:right; white-space:nowrap; }
+  .sub-detail-row.hot .sval{ color:var(--red); font-weight:700; }
+  .blocked-box{ border:1px solid var(--border); border-radius:6px; padding:8px 10px; background:#181b21; }
+  .blocked-item{ display:flex; align-items:flex-start; gap:6px; font-size:11px; color:var(--red); }
+  .blocked-models{ color:var(--dim); font-size:10.5px; margin-top:3px; margin-bottom:6px; }
+  .blocked-ok{ color:var(--green); font-size:11px; }
+  .hw-row{ display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-bottom:6px; }
+  .hw-row b{ color:var(--text); } .hw-row b.hot{ color:var(--red); }
+  .hw-bar-track{ width:100%; height:6px; border-radius:3px; background:#1c2026; overflow:hidden; margin-bottom:10px; }
+  .hw-bar-fill{ height:100%; border-radius:3px; background:var(--green); transition:width .6s ease; }
+  .hw-bar-fill.hot{ background:var(--red); }
+  .ollama-gate{ font-size:10.5px; color:var(--red); border:1px solid #3a2226; background:#1c1416; border-radius:5px; padding:5px 8px; }
+  .ollama-gate.ok{ color:var(--green); border-color:#1c3a26; background:#0f1c14; }
+  .ollama-gate.unknown{ color:var(--dim); border-color:var(--border); background:#181b21; }
+
+  /* ---------- MAIN ---------- */
+  .main{ flex:1; min-width:0; padding:24px 28px 60px; }
+  .hero{ border:1px solid var(--border); background:var(--card); border-radius:10px; padding:22px 24px; margin-bottom:22px; }
+  .hero-top{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
+  .hero-cmd{ font-size:40px; font-weight:700; color:var(--amber); letter-spacing:-0.5px; line-height:1.1; }
+  .hero-cmd.idle{ color:var(--dim); font-size:22px; font-weight:400; }
+  .status-badge{ font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; padding:4px 10px; border-radius:5px; border:1px solid var(--border); color:var(--dim); }
+  .status-badge.running{ color:var(--amber); border-color:#4a3d21; background:#211c11; }
+  .status-badge.blocked{ color:var(--red); border-color:#3a2226; background:#1c1416; }
+  .status-badge.ready,.status-badge.completed{ color:var(--green); border-color:#1c3a26; background:#0f1c14; }
+  .hero-summary{ font-size:16px; color:var(--text); margin:8px 0 2px; }
+  .hero-detail{ font-size:13px; color:var(--dim); margin-bottom:14px; }
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:16px; font-size:11.5px; color:var(--dim); margin-bottom:16px; }
+  .hero-meta b{ color:var(--text); }
+  .steps{ display:flex; gap:6px; margin-bottom:8px; }
+  .step{ flex:1; height:8px; border-radius:3px; background:#1c2026; overflow:hidden; }
+  .step.filled{ background:var(--amber); }
+  .step.current{ background:linear-gradient(90deg,var(--amber) 0%,var(--amber) 55%,#3a3020 55%,#3a3020 100%); }
+  .progress-label{ font-size:11px; color:var(--dim); display:flex; justify-content:space-between; }
+  .resume-line{ margin-top:12px; font-size:11.5px; color:var(--red); border:1px solid #3a2226; background:#1c1416; border-radius:5px; padding:6px 10px; display:inline-block; }
+  .section-title{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--dim); margin:0 0 10px; display:flex; justify-content:space-between; }
+  .section-title span{ text-transform:none; letter-spacing:0; }
+  .empty{ color:var(--dim); font-style:italic; font-size:12px; }
+
+  /* ---------- GRAPH ---------- */
+  .graph-card{ border:1px solid var(--border); background:var(--card); border-radius:8px; padding:18px 18px 10px; margin-bottom:22px; }
+  .graph-svg{ width:100%; height:auto; display:block; }
+  .node-rect{ fill:#181b21; stroke:var(--border); stroke-width:1.5; }
+  .node-rect.headless{ stroke:var(--amber); stroke-width:2; }
+  @media (prefers-reduced-motion: no-preference){ .node-rect.headless{ animation: nodePulse 1.8s ease-in-out infinite; } }
+  @keyframes nodePulse{ 0%,100%{ stroke-opacity:1; filter:drop-shadow(0 0 0 rgba(224,180,74,0)); } 50%{ stroke-opacity:.55; filter:drop-shadow(0 0 6px rgba(224,180,74,.55)); } }
+  .edge{ stroke:var(--amber); stroke-width:1.5; fill:none; }
+  .node-label{ fill:var(--text); font-size:12px; font-family:inherit; font-weight:700; }
+  .node-sub{ fill:var(--dim); font-size:10px; font-family:inherit; }
+  .node-dot{ fill:var(--green); } .node-tri{ fill:var(--amber); }
+  .args-list{ font-size:10.5px; color:var(--dim); margin-top:4px; margin-bottom:8px; word-break:break-all; }
+  .args-list b{ color:var(--text); }
+
+  /* ---------- CARD GRID ---------- */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .card{ border:1px solid var(--border); background:var(--card); border-radius:8px; padding:16px 18px; min-width:0; }
+  .card.full{ grid-column:1 / -1; }
+  table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  th{ text-align:left; color:var(--dim); font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:.5px; padding:0 6px 6px 0; border-bottom:1px solid var(--border); }
+  td{ padding:6px 6px 6px 0; border-bottom:1px solid #1b1e24; color:var(--text); vertical-align:top; word-break:break-word; }
+  tr:last-child td{ border-bottom:none; }
+  .mono-cell{ color:var(--dim); }
+  .yes{ color:var(--green); } .no{ color:var(--dim); }
+  .pill{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+  .pill.pass,.pill.in{ color:var(--green); border:1px solid #1c3a26; background:#0f1c14; }
+  .pill.fail,.pill.reverted{ color:var(--red); border:1px solid #3a2226; background:#1c1416; }
+  .pill.out{ color:var(--dim); border:1px solid var(--border); background:#181b21; }
+  .pill.na{ color:var(--dim); border:1px solid var(--border); }
+  .spend-total{ margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-size:12px; color:var(--text); display:flex; justify-content:space-between; }
+  .pipeline-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:12px; }
+  .p-flag{ color:var(--red); font-weight:700; }
+  .checklist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+  .checklist li{ font-size:12px; display:flex; gap:8px; align-items:baseline; }
+  .checklist .box{ color:var(--green); } .checklist .box.empty{ color:var(--dim); }
+  .cur-feature{ font-size:11px; color:var(--amber); margin-top:8px; }
+  .git-line{ font-size:11.5px; color:var(--dim); margin-bottom:6px; word-break:break-all; }
+  .git-line b{ color:var(--text); }
+  .git-line.indent{ margin-left:8px; }
+  .commit-row{ display:flex; gap:8px; font-size:11px; color:var(--dim); margin-top:3px; }
+  .commit-hash{ color:var(--amber); flex-shrink:0; }
+  .gate-item{ margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #1b1e24; }
+  .gate-item:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .gate-head{ display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--dim); margin-bottom:3px; flex-wrap:wrap; }
+  .gate-name{ color:var(--text); font-weight:600; }
+  .gate-msg{ font-size:11px; color:var(--dim); white-space:pre-wrap; word-break:break-word; }
+  .trace-row{ display:flex; gap:8px; font-size:11px; color:var(--dim); padding:5px 0; border-bottom:1px solid #1b1e24; align-items:baseline; flex-wrap:wrap; }
+  .trace-row:last-child{ border-bottom:none; }
+  .trace-time{ width:52px; flex-shrink:0; }
+  .trace-type{ color:var(--amber); width:96px; flex-shrink:0; }
+  .trace-tool{ color:var(--text); min-width:46px; }
+  .trace-sess{ color:var(--dim); min-width:66px; word-break:break-all; }
+  .trace-tok{ color:var(--dim); }
+
+  @media (max-width: 720px){
+    .layout{ flex-direction:column; }
+    .rail{ width:100%; min-width:0; height:auto; position:static; border-right:none; border-bottom:1px solid var(--border); padding:16px; }
+    .sub-bars{ height:70px; }
+    .main{ padding:16px 14px 40px; }
+    .hero-cmd{ font-size:28px; }
+    .grid{ grid-template-columns:1fr; }
+    table{ font-size:10.5px; }
+  }
 </style>
 </head>
 <body>
-<header id="strip" class="stale">
-  <span class="brand">A1 HARNESS</span>
-  <span class="pill"><span class="dot"></span><b class="state" id="s-state">CONNECTING</b><span id="s-age"></span></span>
-  <span class="pill">repo <b id="s-repo">…</b></span>
-  <span class="pill">branch <b id="s-branch">…</b></span>
-  <span class="pill">blueprint changed <b id="s-change">…</b></span>
-  <span class="pill">CLIs <b id="s-clis">…</b></span>
-  <span class="pill">agents running <b id="s-agents">…</b></span>
-</header>
-<main>
-  <section><h2>Now running <span id="run-age"></span></h2><div id="run"></div></section>
-  <section><h2>Agent tree <span id="agents-n"></span></h2><div id="agents"></div></section>
-  <section><h2>Sandbox &amp; permissions</h2><div id="perms"></div></section>
-  <section><h2>Blocked models <span id="usage-age"></span></h2><div id="blocked"></div></section>
-  <section><h2>Token spend</h2><div id="tokens"></div></section>
-  <section><h2>Subscription windows</h2><div id="windows"></div></section>
-  <section><h2>Feature pipeline</h2><div id="pipeline"></div></section>
-  <section><h2>Git</h2><div id="git"></div></section>
-  <section><h2>Gate results</h2><div id="gates"></div></section>
-  <section><h2>Files touched</h2><div id="files"></div></section>
-  <section><h2>Hardware</h2><div id="hw"></div></section>
-  <section><h2>Recent trace events</h2><div id="events"></div></section>
-</main>
+<div class="layout">
+  <aside class="rail" id="rail">
+    <div class="brand">A1 HARNESS</div>
+    <div class="rail-section">
+      <div class="live-row connecting" id="live"><span class="dot"></span><span class="state" id="live-state">CONNECTING</span><span id="live-age"></span></div>
+      <div class="repo-line" style="margin-top:10px;"><b>repo</b> <span id="r-repo">…</span></div>
+      <div class="repo-line"><b>branch</b> <span id="r-branch">…</span></div>
+      <div class="repo-line">blueprint changed: <span id="r-change">…</span></div>
+    </div>
+    <div class="rail-section">
+      <div class="rail-label">CLIs found</div>
+      <div class="cli-list" id="r-clis"></div>
+      <div class="repo-line" style="margin-top:10px;" id="r-agents">agents running: …</div>
+    </div>
+    <div class="rail-section">
+      <div class="rail-label">Subscription windows</div>
+      <div id="r-usage"></div>
+    </div>
+    <div class="rail-section">
+      <div class="rail-label">Blocked models</div>
+      <div id="r-blocked"></div>
+    </div>
+    <div class="rail-section">
+      <div class="rail-label">Hardware</div>
+      <div id="r-hw"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="hero" id="hero"></section>
+    <section class="graph-card">
+      <div class="section-title">Agent tree <span id="graph-n"></span></div>
+      <div id="graph"></div>
+    </section>
+    <div class="grid">
+      <div class="card full"><div class="section-title">Sandbox &amp; permissions</div><div id="perms"></div></div>
+      <div class="card"><div class="section-title">Token spend</div><div id="tokens"></div></div>
+      <div class="card"><div class="section-title">Feature pipeline</div><div id="pipeline"></div></div>
+      <div class="card"><div class="section-title">Git</div><div id="git"></div></div>
+      <div class="card"><div class="section-title">Gate results</div><div id="gates"></div></div>
+      <div class="card"><div class="section-title">Files touched</div><div id="files"></div></div>
+      <div class="card"><div class="section-title">Recent trace events</div><div id="events"></div></div>
+    </div>
+  </main>
+</div>
+
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 const span = (sec) => sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec/60)}m` : sec < 86400 ? `${Math.floor(sec/3600)}h` : `${Math.floor(sec/86400)}d`;
 const ago = (iso) => { if (!iso) return "—"; const s = Math.round((Date.now() - Date.parse(iso)) / 1000); return Number.isNaN(s) ? "—" : s >= 0 ? `${span(s)} ago` : `in ${span(-s)}`; };
-const until = (iso) => { if (!iso) return ""; const s = Math.round((Date.parse(iso) - Date.now()) / 1000); return Number.isNaN(s) ? "" : s > 0 ? `resets in ${span(s)}` : `reset ${span(-s)} ago`; };
+const until = (iso) => { if (!iso) return ""; const s = Math.round((Date.parse(iso) - Date.now()) / 1000); return Number.isNaN(s) ? "" : s > 0 ? `(${span(s)})` : "(reset)"; };
+const num = (n) => Number(n || 0).toLocaleString();
 const empty = (t) => `<div class="empty">${esc(t)}</div>`;
 const STALE_AFTER_MS = 6000;
 let lastOk = 0;
 
-function render(st) {
-  // live strip
-  $("s-repo").textContent = st.repo.path.replace(/^\/Users\/[^/]+/, "~");
-  $("s-branch").textContent = st.repo.branch || (st.repo.gitRepo ? "?" : "no git");
-  $("s-change").textContent = st.repo.blueprintPresent ? ago(st.repo.lastChange) : "no blueprint/";
-  $("s-clis").textContent = st.clis.filter(c => c.found).map(c => c.cmd).join(" ") || "none";
-  const headless = st.agents.filter(a => a.headless);
-  $("s-agents").textContent = `${headless.length} headless · ${st.agents.length - headless.length} interactive`;
+function renderRail(st) {
+  $("r-repo").textContent = st.repo.path.replace(/^\/Users\/[^/]+/, "~");
+  $("r-branch").textContent = st.repo.branch || (st.repo.gitRepo ? "?" : "no git");
+  $("r-change").textContent = st.repo.blueprintPresent ? ago(st.repo.lastChange) : "no blueprint/";
+  $("r-clis").innerHTML = st.clis.map(c => `<span class="cli-chip ${c.found ? "found" : ""}">${esc(c.cmd)}</span>`).join("");
+  const headless = st.agents.filter(a => a.headless).length;
+  $("r-agents").innerHTML = `agents running: <b>${headless}</b> headless · <b>${st.agents.length - headless}</b> interactive`;
 
-  // now running
-  const r = st.run;
-  $("run-age").textContent = r ? `updated ${ago(r.updatedAt)}` : "";
-  $("run").innerHTML = !r ? empty("no run.json yet — nothing has run through the loop") : r._invalid ? `<span class="r">run.json is malformed</span>` : `
-    <div class="row"><span class="stat">/${esc(r.command)}</span><span class="${r.status==="blocked"?"r":r.status==="running"?"y":"g"}">${esc(r.status)}</span></div>
-    <div class="m" style="margin-top:6px">${esc(r.summary||"")}</div>
-    ${r.detail ? `<div class="k">${esc(r.detail)}</div>` : ""}
-    <div class="grid2" style="margin-top:8px">
-      <div><span class="k">boundary</span> ${esc(r.boundary||"—")}</div>
-      <div><span class="k">started</span> ${ago(r.startedAt)}</div>
-      ${r.feature ? `<div><span class="k">feature</span> ${esc(r.feature.id)} ${esc(r.feature.title)}</div>` : ""}
-      ${r.progress ? `<div><span class="k">progress</span> ${esc(r.progress.current)}/${esc(r.progress.total)} ${esc(r.progress.label)}</div>` : ""}
-      ${r.resumeCommand ? `<div><span class="k">resume</span> ${esc(r.resumeCommand)}</div>` : ""}
-    </div>`;
-
-  // agent tree: parents (interactive) with their headless children by ppid
-  $("agents-n").textContent = `${st.agents.length} process${st.agents.length===1?"":"es"}`;
-  if (!st.agents.length) $("agents").innerHTML = empty("no claude / codex / agy / ollama processes running");
-  else {
-    const byPid = new Map(st.agents.map(a => [a.pid, a]));
-    const roots = st.agents.filter(a => !byPid.has(a.ppid));
-    const node = (a, depth) => `<li class="${depth?"child":""}"><span class="${a.headless?"y":"m"}">${a.headless?"▸":"●"}</span> <b>${esc(a.cli)}</b> <span class="k">pid ${a.pid}</span> ${a.model?`<span class="y">${esc(a.model)}</span>`:""} <span class="k">${a.headless?"headless":"interactive"}</span><div class="mono-sm">${esc(a.args)}</div></li>` +
-      st.agents.filter(c => c.ppid === a.pid).map(c => node(c, depth + 1)).join("");
-    $("agents").innerHTML = `<ul class="tree">${roots.map(a => node(a, 0)).join("")}</ul>`;
-  }
-
-  // sandbox & permissions (from trace sessions that are still open)
-  const open = st.trace.available ? st.trace.openSessions : [];
-  $("perms").innerHTML = !st.trace.available ? empty(st.trace.reason) : !open.length ? empty("no open agent sessions in trace.db") :
-    `<table><tr><th>session</th><th>cli / model</th><th>sandbox</th><th>mode</th><th>tools</th><th>write scope</th></tr>${open.map(s => `<tr>
-      <td>${esc(s.command||"—")}<div class="mono-sm">${esc(s.session_id)}</div></td><td>${esc(s.cli)}<div class="mono-sm">${esc(s.model||"")}</div></td>
-      <td class="${s.sandbox?"g":"r"}">${s.sandbox?"on":"off"}</td><td>${esc(s.permission_mode||"—")}</td>
-      <td class="mono-sm">allow ${esc(s.allowed_tools||"[]")}<br>deny ${esc(s.disallowed_tools||"[]")}</td><td class="mono-sm">${esc(s.allowed_paths||"—")}</td></tr>`).join("")}</table>`;
-
-  // usage: blocked + windows
   const u = st.usage;
-  $("usage-age").textContent = u ? `polled ${ago(u.polledAt)}` : "";
-  if (!u) { $("blocked").innerHTML = empty("no usage.json yet — the usage poller is not running"); $("windows").innerHTML = empty("no usage.json yet"); }
-  else if (u._invalid) { $("blocked").innerHTML = `<span class="r">usage.json is malformed</span>`; $("windows").innerHTML = ""; }
+  if (!u) $("r-usage").innerHTML = empty("no usage.json yet — the usage poller is not running");
+  else if (u._invalid) $("r-usage").innerHTML = `<span style="color:var(--red)">usage.json is malformed</span>`;
   else {
     const groups = Object.entries(u.groups || {});
-    const blocked = groups.filter(([, g]) => g.blocked);
-    $("blocked").innerHTML = !blocked.length ? `<span class="g">nothing blocked</span> <span class="k">threshold ${esc(u.thresholdPercent)}%</span>` :
-      `<ul>${blocked.map(([k, g]) => `<li><span class="r">■</span> <b>${esc(g.label||k)}</b> <span class="k">${esc(g.reason||"")}</span><div class="mono-sm">${(g.models||[]).map(esc).join(", ")}</div></li>`).join("")}</ul>`;
-    const bar = (w, name) => !w ? `<div class="k">${name}: no limit</div>` : `<div class="row"><span class="k">${name}</span><span>${esc(w.usedPercent)}% <span class="k">${until(w.resetsAt)}</span></span></div><div class="bar ${w.usedPercent>=u.thresholdPercent?"hot":""}"><i style="width:${Math.min(100,w.usedPercent||0)}%"></i></div>`;
-    $("windows").innerHTML = `<ul>${groups.map(([k, g]) => `<li><b>${esc(g.label||k)}</b>${bar(g.fiveHour,"5-hour")}${bar(g.weekly,"weekly")}</li>`).join("")}</ul>`;
+    const thr = u.thresholdPercent ?? 95;
+    const bars = groups.map(([k, g]) => {
+      const p = g.fiveHour ? g.fiveHour.usedPercent : null;
+      const cls = p === null ? "none" : p >= thr ? "hot" : "";
+      return `<div class="sub-bar-col"><span class="sub-bar-pct ${cls}">${p === null ? "—" : p + "%"}</span><div class="sub-bar-track"><div class="sub-bar-fill ${cls}" style="height:${p === null ? 4 : Math.max(2, Math.min(100, p))}%"></div></div><span class="sub-bar-name" title="${esc(g.label || k)}">${esc((g.label || k).split(/ [—/-] /)[0])}</span></div>`;
+    }).join("");
+    const rows = groups.map(([k, g]) => {
+      const hot = (g.fiveHour && g.fiveHour.usedPercent >= thr) || (g.weekly && g.weekly.usedPercent >= thr);
+      const val = !g.fiveHour && !g.weekly ? "no limit" : `5h ${g.fiveHour ? g.fiveHour.usedPercent + "% " + until(g.fiveHour.resetsAt) : "—"} · wk ${g.weekly ? g.weekly.usedPercent + "% " + until(g.weekly.resetsAt) : "—"}`;
+      return `<div class="sub-detail-row ${hot ? "hot" : ""}"><span class="sname">${esc((g.label || k).split(/ [—/-] /)[0])}</span><span class="sval">${esc(val)}</span></div>`;
+    }).join("");
+    $("r-usage").innerHTML = `<div class="sub-bars">${bars}</div><div class="sub-detail">${rows}</div>`;
   }
 
-  // tokens
-  const t = st.trace;
-  $("tokens").innerHTML = !t.available ? empty(t.reason) : !t.tokens.length ? empty("no sessions traced yet") :
-    `<table><tr><th>command</th><th>cli / model</th><th>in</th><th>out</th></tr>${t.tokens.map(x => `<tr><td>/${esc(x.command||"—")}</td><td>${esc(x.cli||"")}<div class="mono-sm">${esc(x.model||"")}</div></td><td class="y">${x.tokens_in.toLocaleString()}</td><td class="y">${x.tokens_out.toLocaleString()}</td></tr>`).join("")}</table>`;
+  if (!u || u._invalid) $("r-blocked").innerHTML = empty("unknown — no usage data");
+  else {
+    const blocked = Object.entries(u.groups || {}).filter(([, g]) => g.blocked);
+    $("r-blocked").innerHTML = (blocked.length
+      ? `<div class="blocked-box">${blocked.map(([k, g]) => `<div class="blocked-item"><span>■</span><span>${esc(g.label || k)} — ${esc(g.reason || "blocked")}</span></div><div class="blocked-models">models: ${(g.models || []).map(esc).join(", ") || "—"}</div>`).join("")}</div>`
+      : `<div class="blocked-box"><span class="blocked-ok">nothing blocked</span></div>`)
+      + `<div class="repo-line" style="margin-top:6px;">polled ${ago(u.polledAt)} · threshold ${esc(u.thresholdPercent ?? 95)}%</div>`;
+  }
 
-  // pipeline
-  const p = st.pipeline, bp = p.buildPlan;
-  $("pipeline").innerHTML = `
-    <div class="row"><span><span class="stat">${bp.done}</span> <span class="k">/ ${bp.total} features done</span></span><span class="${p.findings.p0||p.findings.p1?"r":"g"}">P0 ${p.findings.p0} · P1 ${p.findings.p1}</span></div>
-    <div class="bar"><i style="width:${bp.total?Math.round(100*bp.done/bp.total):0}%"></i></div>
-    <div style="margin-top:8px"><span class="k">current feature</span> ${p.currentFeature.inProgress ? `<b>${esc(p.currentFeature.title||"(untitled)")}</b> <span class="y">${esc(p.currentFeature.status||"")}</span>` : `<span class="k">none in progress</span>`}</div>
-    ${bp.items.length ? `<ul style="margin-top:8px">${bp.items.map(i => `<li><span class="${i.done?"g":"k"}">${i.done?"☑":"☐"}</span> ${i.id?`<span class="k">${esc(i.id)}.</span> `:""}${esc(i.title)}</li>`).join("")}</ul>` : `<div class="empty" style="margin-top:6px">build-plan.md has no checklist yet — run /plan</div>`}`;
-
-  // git
-  const g = st.git;
-  $("git").innerHTML = !g ? empty("not a git repository") : `
-    <div class="grid2"><div><span class="k">branch</span> <b>${esc(st.repo.branch)}</b></div><div><span class="k">uncommitted</span> <span class="${g.dirtyFiles?"y":"g"}">${g.dirtyFiles} file${g.dirtyFiles===1?"":"s"}</span></div></div>
-    <div style="margin-top:8px"><span class="k">worktrees</span><ul>${g.worktrees.map(w => `<li><b>${esc(w.branch||"(detached)")}</b> <span class="mono-sm">${esc(w.path)}</span></li>`).join("")}</ul></div>
-    <div style="margin-top:8px"><span class="k">branches</span> <span class="m">${g.branches.map(b => esc(b.name)).join(" · ")}</span></div>
-    ${g.tags.length ? `<div style="margin-top:8px"><span class="k">tags</span> <span class="m">${g.tags.map(esc).join(" · ")}</span></div>` : ""}
-    <div style="margin-top:8px"><span class="k">commits</span><ul>${g.commits.map(c => `<li><span class="y">${esc(c.hash)}</span> ${esc(c.subject)} <span class="k">${ago(c.date)}</span></li>`).join("")}</ul></div>`;
-
-  // gates
-  $("gates").innerHTML = !t.available ? empty(t.reason) : !t.gates.length ? empty("no gate results yet") :
-    `<ul>${t.gates.map(x => `<li><span class="${x.passed?"g":"r"}">${x.passed?"PASS":"FAIL"}</span> <b>${esc(x.gate)}</b> <span class="k">/${esc(x.command||"—")} · ${ago(x.ts)}</span>${x.evidence?`<div class="mono-sm">${esc(x.evidence)}</div>`:""}</li>`).join("")}</ul>`;
-
-  // files touched
-  $("files").innerHTML = !t.available ? empty(t.reason) : !t.files.length ? empty("no file records yet") :
-    `<table><tr><th>path</th><th>claimed</th><th>actual</th><th>scope</th></tr>${t.files.map(f => `<tr><td class="mono-sm">${esc(f.path)}</td><td>${f.claimed?"✓":""}</td><td>${f.actual?"✓":""}</td><td class="${f.reverted?"r":f.in_scope===0?"r":f.in_scope===1?"g":"k"}">${f.reverted?"reverted":f.in_scope===0?"out":f.in_scope===1?"in":"—"}</td></tr>`).join("")}</table>`;
-
-  // hardware
-  const h = st.hardware, memPct = Math.round(100 * (1 - h.freeMemGb / h.totalMemGb));
-  $("hw").innerHTML = `
-    <div class="grid2"><div><span class="k">cpu load (1m)</span> <b>${h.load1}</b> <span class="k">/ ${h.cpus} cores</span></div><div><span class="k">memory used</span> <b>${memPct}%</b> <span class="k">${h.freeMemGb} GB free of ${h.totalMemGb}</span></div></div>
-    <div class="bar ${memPct>85?"hot":""}"><i style="width:${memPct}%"></i></div>
-    ${h.hardwareJson ? `<div class="mono-sm" style="margin-top:6px">${esc(JSON.stringify(h.hardwareJson))}</div>` : `<div class="k" style="margin-top:6px">ollama gate: no hardware.json yet</div>`}`;
-
-  // events
-  $("events").innerHTML = !t.available ? empty(t.reason) : !t.events.length ? empty("no events yet") :
-    `<ul>${t.events.map(e => `<li><span class="k">${ago(e.ts)}</span> <b>${esc(e.kind)}</b> ${esc(e.name||"")} <span class="mono-sm">${esc(e.session_id)}</span>${e.tokens_in||e.tokens_out?` <span class="y">${e.tokens_in||0}/${e.tokens_out||0}</span>`:""}</li>`).join("")}</ul>`;
+  const h = st.hardware, memPct = Math.round(100 * (1 - h.freeMemGb / h.totalMemGb)), cpuPct = Math.min(100, Math.round(100 * h.load1 / h.cpus));
+  const hj = h.hardwareJson;
+  const gate = !hj ? `<div class="ollama-gate unknown">ollama gate: no hardware.json yet</div>`
+    : hj.ollamaOk ? `<div class="ollama-gate ok">ollama gate: allowed</div>`
+    : `<div class="ollama-gate">ollama gate: blocked${hj.reason ? " — " + esc(hj.reason) : ""}</div>`;
+  $("r-hw").innerHTML = `
+    <div class="hw-row"><span>cpu load (1m)</span><b class="${cpuPct > 85 ? "hot" : ""}">${h.load1} / ${h.cpus} cores</b></div>
+    <div class="hw-bar-track"><div class="hw-bar-fill ${cpuPct > 85 ? "hot" : ""}" style="width:${cpuPct}%"></div></div>
+    <div class="hw-row"><span>memory used</span><b class="${memPct > 85 ? "hot" : ""}">${memPct}%</b></div>
+    <div class="hw-bar-track"><div class="hw-bar-fill ${memPct > 85 ? "hot" : ""}" style="width:${memPct}%"></div></div>
+    <div class="repo-line" style="margin-bottom:10px;">${h.freeMemGb} GB free of ${h.totalMemGb} GB</div>${gate}`;
 }
 
-function setLive(ok) {
-  const strip = $("strip");
-  strip.className = ok ? "live" : "stale";
-  $("s-state").textContent = ok ? "LIVE" : "STALE";
-  $("s-age").textContent = lastOk ? ` · data ${ago(new Date(lastOk).toISOString())}` : "";
+function renderHero(r) {
+  if (!r) { $("hero").innerHTML = `<div class="hero-top"><div class="hero-cmd idle">nothing running</div></div><div class="hero-detail">no run.json yet — nothing has run through the loop</div>`; return; }
+  if (r._invalid) { $("hero").innerHTML = `<div class="hero-cmd idle" style="color:var(--red)">run.json is malformed</div>`; return; }
+  const p = r.progress && r.progress.total ? r.progress : null;
+  const steps = p ? Array.from({ length: p.total }, (_, i) => `<div class="step ${i + 1 < p.current ? "filled" : i + 1 === p.current ? "current" : ""}"></div>`).join("") : "";
+  $("hero").innerHTML = `
+    <div class="hero-top"><div class="hero-cmd">/${esc(r.command)}</div><span class="status-badge ${esc(r.status)}">${esc(r.status)}</span></div>
+    <div class="hero-summary">${esc(r.summary || "")}</div>
+    ${r.detail ? `<div class="hero-detail">${esc(r.detail)}</div>` : `<div class="hero-detail"></div>`}
+    <div class="hero-meta">
+      <span>boundary: <b>${esc(r.boundary || "—")}</b></span>
+      <span>started: <b>${ago(r.startedAt)}</b></span>
+      <span>updated: <b>${ago(r.updatedAt)}</b></span>
+      ${r.feature ? `<span>feature: <b>${esc(r.feature.id)} · ${esc(r.feature.title)}</b></span>` : ""}
+    </div>
+    ${p ? `<div class="steps">${steps}</div><div class="progress-label"><span>progress: ${p.current} / ${p.total} ${esc(p.label || "")}</span><span>${Math.round(100 * p.current / p.total)}%</span></div>` : ""}
+    ${r.status === "blocked" && r.resumeCommand ? `<div class="resume-line">resume: ${esc(r.resumeCommand)}</div>` : ""}`;
+}
+
+// Agent tree as an SVG node graph. Roots are processes whose parent is not itself
+// a known CLI process; children hang to the right of their parent.
+function renderGraph(agents) {
+  $("graph-n").textContent = `${agents.length} process${agents.length === 1 ? "" : "es"}`;
+  if (!agents.length) { $("graph").innerHTML = empty("no claude / codex / agy / ollama processes running"); return; }
+  const byPid = new Map(agents.map(a => [a.pid, a]));
+  const kids = (a) => agents.filter(c => c.ppid === a.pid);
+  const roots = agents.filter(a => !byPid.has(a.ppid));
+  const W = 200, H = 60, GX = 260, GY = 80, X0 = 20, Y0 = 20, COLS = 4, CW = W + 40;
+  const nodes = [], edges = [];
+  let row = 0;
+  // Roots that have children get their own band with the subtree laid out to the right.
+  const place = (a, depth, parent) => {
+    const n = { a, x: X0 + depth * GX, y: Y0 + row * GY };
+    nodes.push(n);
+    if (parent) edges.push(`M ${parent.x + W} ${parent.y + H / 2} C ${parent.x + W + 40} ${parent.y + H / 2}, ${n.x - 40} ${n.y + H / 2}, ${n.x} ${n.y + H / 2}`);
+    const ch = kids(a);
+    if (!ch.length) row++;
+    ch.forEach(c => place(c, depth + 1, n));
+  };
+  roots.filter(r => kids(r).length).forEach(r => place(r, 0, null));
+  // Roots without children (idle interactive sessions, ollama serve) pack into a grid.
+  const leaves = roots.filter(r => !kids(r).length);
+  leaves.forEach((a, i) => { nodes.push({ a, x: X0 + (i % COLS) * CW, y: Y0 + (row + Math.floor(i / COLS)) * GY }); });
+  row += Math.ceil(leaves.length / COLS);
+  const vw = Math.max(...nodes.map(n => n.x + W)) + X0, vh = Y0 * 2 + row * GY - (GY - H);
+  const svgNodes = nodes.map(({ a, x, y }) => `
+    <rect class="node-rect ${a.headless ? "headless" : ""}" x="${x}" y="${y}" width="${W}" height="${H}" rx="8"></rect>
+    ${a.headless ? `<polygon class="node-tri" points="${x + 18},${y + 12} ${x + 18},${y + 24} ${x + 26},${y + 18}"></polygon>` : `<circle class="node-dot" cx="${x + 18}" cy="${y + 18}" r="4"></circle>`}
+    <text class="node-label" x="${x + 32}" y="${y + 23}">${esc(a.cli)}</text>
+    <text class="node-sub" x="${x + 18}" y="${y + 40}">pid ${a.pid} · ${a.headless ? "headless" : "interactive"}</text>
+    <text class="node-sub" x="${x + 18}" y="${y + 52}">${esc(a.model || "")}</text>`).join("");
+  $("graph").innerHTML = `<svg class="graph-svg" viewBox="0 0 ${Math.max(vw, X0 * 2 + COLS * CW - 40)} ${vh}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agent process tree">${edges.map(d => `<path class="edge" d="${d}"/>`).join("")}${svgNodes}</svg>
+    <div class="args-list">${agents.map(a => `<div><b>${esc(a.cli)}</b> <span>pid ${a.pid}</span> ${esc(a.args)}</div>`).join("")}</div>`;
+}
+
+function renderMain(st) {
+  const t = st.trace;
+  const open = t.available ? t.openSessions : [];
+  $("perms").innerHTML = !t.available ? empty(t.reason) : !open.length ? empty("no open agent sessions in trace.db") :
+    `<table><thead><tr><th>session</th><th>cli / model</th><th>sandbox</th><th>mode</th><th>allowed</th><th>denied</th><th>write scope</th></tr></thead><tbody>${open.map(s => `<tr>
+      <td>/${esc(s.command || "—")} · ${esc(s.session_id)}</td><td class="mono-cell">${esc(s.cli)} · ${esc(s.model || "")}</td>
+      <td class="${s.sandbox ? "yes" : "no"}">${s.sandbox ? "on" : "off"}</td><td>${esc(s.permission_mode || "—")}</td>
+      <td>${esc(list(s.allowed_tools))}</td><td class="mono-cell">${esc(list(s.disallowed_tools)) || "—"}</td><td class="mono-cell">${esc(list(s.allowed_paths)) || "—"}</td></tr>`).join("")}</tbody></table>`;
+
+  if (!t.available) $("tokens").innerHTML = empty(t.reason);
+  else if (!t.tokens.length) $("tokens").innerHTML = empty("no sessions traced yet");
+  else {
+    const tin = t.tokens.reduce((a, x) => a + x.tokens_in, 0), tout = t.tokens.reduce((a, x) => a + x.tokens_out, 0);
+    $("tokens").innerHTML = `<table><thead><tr><th>command</th><th>cli / model</th><th>in</th><th>out</th></tr></thead><tbody>${t.tokens.map(x => `<tr><td>/${esc(x.command || "—")}</td><td class="mono-cell">${esc(x.cli || "")} · ${esc(x.model || "")}</td><td>${num(x.tokens_in)}</td><td>${num(x.tokens_out)}</td></tr>`).join("")}</tbody></table>
+      <div class="spend-total"><span>Total</span><span>${num(tin)} in · ${num(tout)} out</span></div>`;
+  }
+
+  const p = st.pipeline, bp = p.buildPlan;
+  $("pipeline").innerHTML = `
+    <div class="pipeline-top"><span>${bp.done} / ${bp.total} features done</span><span>P0 <b class="${p.findings.p0 ? "p-flag" : ""}">${p.findings.p0}</b> &nbsp; P1 <b class="${p.findings.p1 ? "p-flag" : ""}">${p.findings.p1}</b></span></div>
+    ${bp.items.length ? `<ul class="checklist">${bp.items.map(i => `<li><span class="box ${i.done ? "" : "empty"}">${i.done ? "☑" : "☐"}</span> ${i.id ? esc(i.id) + ". " : ""}${esc(i.title)}</li>`).join("")}</ul>` : empty("build-plan.md has no checklist yet — run /plan")}
+    <div class="cur-feature">${p.currentFeature.inProgress ? `current: ${esc(p.currentFeature.title || "(untitled)")}${p.currentFeature.status ? " — status: " + esc(p.currentFeature.status) : ""}` : `<span style="color:var(--dim)">no feature in progress</span>`}</div>`;
+
+  const g = st.git;
+  $("git").innerHTML = !g ? empty("not a git repository") : `
+    <div class="git-line"><b>branch</b> ${esc(st.repo.branch)} · uncommitted <b>${g.dirtyFiles}</b> file${g.dirtyFiles === 1 ? "" : "s"}</div>
+    <div class="git-line"><b>worktrees</b></div>${g.worktrees.map(w => `<div class="git-line indent">${esc(w.branch || "(detached)")} → ${esc(w.path.replace(/^\/Users\/[^/]+/, "~"))}</div>`).join("")}
+    <div class="git-line"><b>branches</b> ${g.branches.map(b => esc(b.name)).join(" · ") || "—"}</div>
+    ${g.tags.length ? `<div class="git-line"><b>tags</b> ${g.tags.map(esc).join(" · ")}</div>` : ""}
+    <div class="git-line" style="margin-top:6px;"><b>commits</b></div>${g.commits.map(c => `<div class="commit-row"><span class="commit-hash">${esc(c.hash)}</span><span>${esc(c.subject)} · ${ago(c.date)}</span></div>`).join("") || empty("no commits yet")}`;
+
+  $("gates").innerHTML = !t.available ? empty(t.reason) : !t.gates.length ? empty("no gate results yet") :
+    t.gates.map(x => `<div class="gate-item"><div class="gate-head"><span class="pill ${x.passed ? "pass" : "fail"}">${x.passed ? "PASS" : "FAIL"}</span><span class="gate-name">${esc(x.gate)}</span><span>· /${esc(x.command || "—")} · ${ago(x.ts)}</span></div>${x.evidence ? `<div class="gate-msg">${esc(x.evidence)}</div>` : ""}</div>`).join("");
+
+  $("files").innerHTML = !t.available ? empty(t.reason) : !t.files.length ? empty("no file records yet") :
+    `<table><thead><tr><th>path</th><th>claimed</th><th>actual</th><th>scope</th></tr></thead><tbody>${t.files.map(f => `<tr><td class="mono-cell">${esc(f.path)}</td><td class="${f.claimed ? "yes" : "no"}">${f.claimed ? "✓" : "—"}</td><td class="${f.actual ? "yes" : "no"}">${f.actual ? "✓" : "—"}</td><td>${f.reverted ? `<span class="pill reverted">out → reverted</span>` : f.in_scope === 1 ? `<span class="pill in">in</span>` : f.in_scope === 0 ? `<span class="pill out">out</span>` : `<span class="pill na">—</span>`}</td></tr>`).join("")}</tbody></table>`;
+
+  $("events").innerHTML = !t.available ? empty(t.reason) : !t.events.length ? empty("no events yet") :
+    t.events.map(e => `<div class="trace-row"><span class="trace-time">${ago(e.ts)}</span><span class="trace-type">${esc(e.kind)}</span><span class="trace-tool">${esc(e.name || "")}</span><span class="trace-sess">${esc(e.session_id)}</span><span class="trace-tok">${e.tokens_in || e.tokens_out ? `${num(e.tokens_in)} / ${num(e.tokens_out)}` : ""}</span></div>`).join("");
+}
+
+function list(json) { try { const v = JSON.parse(json); return Array.isArray(v) ? v.join(", ") : String(v ?? ""); } catch { return json || ""; } }
+
+function setLive(state) {
+  const el = $("live");
+  el.className = `live-row ${state}`;
+  $("live-state").textContent = state.toUpperCase();
+  $("live-age").textContent = lastOk ? `· data ${ago(new Date(lastOk).toISOString())}` : "";
 }
 
 async function poll() {
@@ -181,13 +367,13 @@ async function poll() {
     if (!res.ok) throw new Error(res.status);
     const st = await res.json();
     lastOk = Date.now();
-    render(st);
-    setLive(true);
-  } catch { setLive(false); }
+    renderRail(st); renderHero(st.run); renderGraph(st.agents); renderMain(st);
+    setLive("live");
+  } catch { setLive(lastOk ? "stale" : "connecting"); }
 }
 poll();
 setInterval(poll, 2000);
-setInterval(() => setLive(Date.now() - lastOk < STALE_AFTER_MS), 1000);
+setInterval(() => { if (lastOk) setLive(Date.now() - lastOk < STALE_AFTER_MS ? "live" : "stale"); }, 1000);
 </script>
 </body>
 </html>

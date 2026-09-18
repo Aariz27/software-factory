@@ -28,5 +28,5 @@ Built on AI Blueprint 1.9.0 (unchanged). Everything below is ours. Detail per it
 - [ ] 21. **`/prototype <doc>`** — Blueprint's `/prototype` takes `spec` / `data_contract` / `features` / `ux` / `ui` and renders that doc's decisions as an HTML diagram.
 - [ ] 22. **Race-condition guards** — one lock file per repo for write-capable commands; one git worktree per feature; single writer per store (atomic `run.json`, SQLite WAL); parallel subagents only when read-only.
 - [ ] 23. **"Files in scope" section in the feature spec** — needed by the scope block (15) and the scope gate (17).
-- [ ] 24. **Verify command source of truth** — decide whether `AGENTS.md` Commands or a config field holds the test command; gate scripts read from it.
+- [x] 24. **Verify command source of truth** — the `Verify:` line in `AGENTS.md` Commands is the only home; gate scripts read from it.
 - [ ] 25. **npm publish** as `create-software-factory` (or rename to `create-a1-harness`).

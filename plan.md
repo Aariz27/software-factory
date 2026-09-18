@@ -51,4 +51,7 @@ Every project has five documents the user writes by hand before `/plan` runs:
 - Research reports (scratchpad): `research-blueprint.md`, `research-sssf-and-plan.md`, `research-web.md`.
 
 ## Conflicts still open
-1. **Where the test command lives.** ai-blueprint keeps the Verify command as text in `AGENTS.md` Commands. Our gate script (feature 7) needs the same command. One place must be the source of truth and the other must read from it.
+None. The Verify command lives only on the `Verify:` line of `AGENTS.md` Commands (decided 2026-09-18; `template/AGENTS.md` says so); gate scripts read it from there.
+
+## Dashboard design
+Chosen 2026-09-18 from a six-way design tournament: **rail + graph** — fixed 260px left rail (LIVE dot, repo, CLIs, subscription bars, blocked models, hardware), main area with a "now running" hero (40px command, segmented step bar) and the agent tree as an SVG node graph (host → headless children; child-less processes packed 4 per row), then a 2-column card grid. Dark `#0d0f12`, monospace, amber `#e0b44a` for active, red for fail/blocked/hot, green for pass/live.

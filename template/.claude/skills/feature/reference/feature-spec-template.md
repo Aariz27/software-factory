@@ -42,9 +42,15 @@ session reads which boxes are ticked and resumes from the first unchecked step.
 - [ ] **Step 1 - <step>** - what you build. *Done when:* <observable criteria>.
 - [ ] **Step 2 - <step>** - what you build. *Done when:* <observable criteria>.
 
-## Files / areas
+## Files in scope
 
-- The files or modules this will create or change.
+Every file or folder this feature may create or change, one per line, as a
+repo-relative path or glob in backticks. The scope hook and the scope gate read
+this list literally: an edit to a path not listed here is blocked, so add a path
+here before touching it.
+
+- `src/example/file.ts`
+- `src/example/folder/**`
 
 ## Data / contracts
 

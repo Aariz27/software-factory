@@ -299,6 +299,10 @@ For a standard Next.js project. Change or remove if you're using something else.
 - Production server: `npm run start`
 - Lint: `npm run lint`
 
+The `Verify:` line in this section is the only place the project's test command
+lives. `/ci` writes it, and the gate scripts read it from here to run the tests.
+Never copy it into `blueprint/config.json` or anywhere else.
+
 Testing is opt-in. If this project does not already have a unit test runner, run
 `/tests` or `$tests` to add one and update this section with the real test
 commands.
