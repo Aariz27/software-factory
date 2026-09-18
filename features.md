@@ -28,7 +28,7 @@ Built on AI Blueprint 1.9.0 (unchanged). Everything below is ours. Detail per it
 - [x] 24. **Verify command source of truth** — the `Verify:` line in `AGENTS.md` Commands is the only home; gate scripts read from it.
 
 ## Pending
-- [ ] 25. **npm publish** as `create-software-factory` (or rename to `create-a1-harness`).
+- [ ] 25. **npm publish** as `create-software-factory` (or rename to `create-a1-harness`). Blocked 2026-09-19: no npm login on this machine (`npm whoami` → ENEEDAUTH). `npm pack --dry-run` is clean (133 files, no session files).
 
 ## A2 Harness (later)
 - [ ] 20. **Prompting guide read before every handoff** — whenever one model sends a prompt to another (`claude -p`, `codex exec`, `agy -p`, `ollama`), a `PreToolUse` hook blocks the command until the session transcript shows the sender read the receiving model's guide in `~/.claude/skills/prompting/`. Still open: the guides only exist on Aariz's Mac, and GPT and Gemini have no guide yet. Replaces the earlier plan of a script that rewrites each skill's prompt text.
