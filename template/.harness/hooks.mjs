@@ -95,9 +95,9 @@ export function detectDelegation(command) {
   const c = String(command || "");
   if (/\.harness\/sf\.mjs\s+run\b/.test(c)) return { cli: "sf" };                  // the wrapper swaps blocked models itself
   const model = c.match(/(?:--model|-m)[ =]([^\s"']+)/)?.[1] ?? null;
-  if (/(^|[\s;&|(])claude\b[^;&|]*?(?:\s-p(?=\s|$)|\s--print\b)/.test(c)) return { cli: "claude", model };
+  if (/(^|[\s;&|(])claude(?=\s)[^;&|]*?(?:\s-p(?=\s|$)|\s--print\b)/.test(c)) return { cli: "claude", model };
   if (/(^|[\s;&|(])codex\s+exec\b/.test(c)) return { cli: "codex", model };
-  if (/(^|[\s;&|(])agy\b[^;&|]*?(?:\s-p(?=\s|$)|\s--print\b|\s--prompt\b)/.test(c)) return { cli: "agy", model };
+  if (/(^|[\s;&|(])agy(?=\s)[^;&|]*?(?:\s-p(?=\s|$)|\s--print\b|\s--prompt\b)/.test(c)) return { cli: "agy", model };
   return null;
 }
 
