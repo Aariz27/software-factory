@@ -26,8 +26,11 @@ process.emitWarning = (warning, ...rest) => {
 // A reader that stops early (`| head`) is not a gate failure.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(process.exitCode ?? 0); throw e; });
 
+// Always run from ROOT, regardless of the caller's actual cwd, so every path
+// git prints (ls-files, diff --name-only, ...) is repo-root-relative like the
+// paths in current-feature.md, findings.md and everywhere else in this file.
 const git = (...args) =>
-  execFileSync("git", args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+  execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
 
 let ROOT;
 try {
