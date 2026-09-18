@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" session-start" } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" prompt" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" pre-bash" } ] },
+      { "matcher": "Edit|Write|MultiEdit|NotebookEdit", "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" pre-edit" } ] }
+    ],
+    "PostToolUse": [
+      { "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" post-tool", "async": true } ] }
+    ],
+    "SubagentStart": [
+      { "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" subagent-start", "async": true } ] }
+    ],
+    "SubagentStop": [
+      { "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" subagent-stop", "async": true } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.harness/hooks.mjs\" stop" } ] }
+    ]
+  }
+}
