@@ -1,6 +1,6 @@
 ---
 name: control-flow
-description: Renders the real control flow of a piece of code (a file, a function, a feature, a route) as a single dark-themed HTML diagram and opens it in the browser. Trigger on the `/control-flow` slash command, and also whenever the user asks to see the order of execution, the sequence of steps, the branching logic, "what runs first", "what happens next", "walk me through what this function does", a flowchart, or wants to understand how a piece of code branches and fails — even if they never say "control flow". The argument can be a file path, a description of part of a file, a feature name, or a route.
+description: Renders the real control flow of a file, function, feature, or route as a dark-themed HTML diagram and opens it. Trigger on `/control-flow`, or when the user asks about order of execution, branching logic, "what runs first/next", or wants a flowchart — even without saying "control flow". Argument: a file path, code fragment, feature name, or route.
 ---
 
 # control-flow
@@ -59,9 +59,9 @@ and it is what you re-check against the code before writing any SVG.
    in the diagram, not just the ones in the worked example — replace all of them.
 3. Set the top-left heading to the literal argument text the user passed, and list the
    `file:line` sources underneath it.
-4. Determine the project root (nearest ancestor directory that looks like the project, e.g.
-   containing `.git`, `package.json`, `pyproject.toml`, or similar — otherwise the current
-   working directory). Create `prototypes/diagrams/` under it if it doesn't exist, and save
+4. Determine the project root: the nearest ancestor directory containing `.git` or
+   `package.json` (otherwise the current working directory). Create `prototypes/diagrams/`
+   under it if it doesn't exist, and save
    the filled page as `prototypes/diagrams/control-flow-<slug>.html`, where `<slug>` is the
    argument text lowercased, spaces and punctuation turned into hyphens.
 5. Open the saved file in the default browser with the command for the OS the shell
@@ -85,6 +85,8 @@ eye against the output:
 - Failure edge and its handler node: red `#e5484d` border; handler node fill `#1c1416`.
 - Untaken branch (the `false` side when it's not the main path): node and edge in dim grey —
   border/edge `#4b5059`, text `#6b7280`.
+- Every edge (main-path, false-branch, throws) ends in a small open arrowhead at the node it
+  points to — not just the main path.
 - Left margin: a column of 15px grey captions, one per row, in plain words only — "what
   happens first", "what happens next", "what only happens if something is true", "what
   happens when something fails". No jargon substitutes for these captions.
@@ -92,6 +94,7 @@ eye against the output:
   whitespace, no shadows, no gradients, no icons.
 - True branch continues straight down the main axis; false branch and throws branch go
   sideways off the main axis to their own node.
+- Fits phone width with no horizontal scroll (`viewBox` + `width="100%"`).
 
 ## Example
 

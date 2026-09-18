@@ -1,6 +1,6 @@
 ---
 name: data-flow
-description: Renders a single self-contained HTML diagram showing where data goes for a given file, feature, route, or description in this project — who sends it, over what transport, to which component, what comes back, and where it is stored — then opens it in the browser. Trigger on the /data-flow slash command, and also whenever the user asks where data goes, what the client sends to the server, how a request travels, what gets stored where, request/response shape, or asks to "trace this payload" — even if they never say "data flow".
+description: Renders an HTML diagram of where data goes for a file, feature, route, or description — sender, transport, receiver, response, and store — then opens it. Trigger on `/data-flow`, or when the user asks where data goes, what the client sends the server, how a request travels, or to "trace this payload" — even without saying "data flow".
 ---
 
 # Data Flow Diagram
@@ -77,8 +77,10 @@ the render step, and skipping straight to drawing is how boxes end up wrong.
 4. If there's only one tier, use a single column and say so in the heading
    text (e.g. "single-tier — no client/server split").
 5. Save the filled page to `prototypes/diagrams/data-flow-<slug>.html` in
-   the project root (slug = a short kebab-case name from the argument),
-   creating the `prototypes/diagrams/` folder if it doesn't exist.
+   the project root — the nearest ancestor directory containing `.git` or
+   `package.json` (otherwise the current working directory; slug = a short
+   kebab-case name from the argument), creating the `prototypes/diagrams/`
+   folder if it doesn't exist.
 6. Open it with the command for the OS the shell reports: `open <path>` on macOS,
    `xdg-open <path>` on Linux, `start "" <path>` on Windows. Do not add any other
    browser-automation step — this one command is the entire job.
@@ -95,7 +97,8 @@ Verify the rendered page against every one of these before opening it:
   `#6b7280`, 13px, wide letter-spacing, top-left of each column.
 - Divider between columns: vertical dashed line, 1px, `#3a3f47`.
 - Edges: 2px lines, `#e0b44a` (yellow), right-angle elbows only — no
-  diagonals, no curves, no arrowheads.
+  diagonals, no curves. Every edge ends in a small open arrowhead at the box
+  it points to, not just the first one.
 - Edge labels: 13px, sitting just above the line; grey `#6b7280` for a
   request label, yellow `#e0b44a` for a response label (e.g. `json`).
 - The request path runs left→right across the divider near the top; the
@@ -104,6 +107,7 @@ Verify the rendered page against every one of these before opening it:
 - Generous whitespace, no shadows, no gradients, no icons.
 - No external scripts or stylesheets — the page must open and render fully
   offline.
+- Fits phone width with no horizontal scroll (`viewBox` + `width="100%"`).
 
 ## Example
 
