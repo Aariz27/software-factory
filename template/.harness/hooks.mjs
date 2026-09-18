@@ -43,6 +43,17 @@ export function parentIsHeadless(ppid = process.ppid) {
 // Commands Blueprint tracks in run.json (AGENTS.md "Dashboard activity").
 const TRACKED = new Set(["onboard", "adopt", "discovery", "overview", "feature", "fix", "rollback", "implement", "debug", "check", "audit", "tests", "ci", "prototype", "autopilot", "continuous", "complete", "release", "plan"]);
 const LOOPING = new Set(["implement", "autopilot", "continuous", "fix"]);
+// Feature 17: which deterministic gates a command must run before it reports done.
+const GATES_FOR = {
+  implement: ["test", "scope", "claimed <every file you say you changed>"],
+  fix: ["test", "scope", "claimed <every file you say you changed>"],
+  autopilot: ["test", "scope", "claimed <every file you say you changed>"],
+  continuous: ["test", "scope", "claimed <every file you say you changed>"],
+  audit: ["diff", "review"],
+  check: ["test"],
+  complete: ["commit-ready", "test", "scope", "review"],
+  ci: ["test"],
+};
 const MAX_TEST_FIX = 3, MAX_REVIEW_REVISE = 2;
 
 // ── shared readers ───────────────────────────────────────────────────────────
@@ -134,6 +145,14 @@ const handlers = {
         `Do not follow the /${command} skill yourself. Run from the project root:\n` +
         `  node .harness/sf.mjs run ${command} --skill${flag} ${JSON.stringify(args)}\n` +
         `Then relay its stdout to the user verbatim and stop. If it exits 3 (no usable model), report the message and stop.` } });
+    }
+
+    const gates = GATES_FOR[command];
+    if (gates && !(assigned && (assigned.cli !== "claude" || (host?.model && assigned.model !== host.model) || independent))) {
+      out({ hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext:
+        `A1 Harness gates for /${command}: before you report this step as done, run each of these from the project root and paste the PASS/FAIL line into your report — ` +
+        gates.map((g) => `\`node .harness/gates.mjs ${g}\``).join(", ") +
+        `. A FAIL line means the step is not done; do not claim otherwise.` } });
     }
 
     if (TRACKED.has(command)) {
