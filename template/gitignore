@@ -10,3 +10,4 @@ blueprint/.state/trace.db-shm
 blueprint/.state/usage.json
 blueprint/.state/host-session.json
 blueprint/.state/sf.lock
+.worktrees/

@@ -122,6 +122,10 @@ function main() {
     return;
   }
   console.log(BANNER);
+  if (existsSync(join(opts.target, "template", "AGENTS.md")) && existsSync(join(opts.target, "bin", "create-software-factory.js"))) {
+    throw new UsageError(`${opts.target} is the create-software-factory package itself — install into an app directory, not here`);
+  }
+
   if (opts.command === "dashboard") {
     if (opts.dryRun) {
       console.log(`  ${D}dashboard not started in dry run${X}\n`);
@@ -180,7 +184,8 @@ function main() {
       source: pkg.name,
       version: pkg.version,
       blueprintVersion: BLUEPRINT_VERSION,
-      adapters: ["claude", "codex"],
+      // Which adapter trees this install carries (AGENTS.md "Workflow"): .claude/ → Claude Code, .agents/ → Codex/Copilot/OpenCode.
+      adapters: [existsSync(join(opts.target, ".claude", "skills")) && "claude", existsSync(join(opts.target, ".agents", "skills")) && "codex"].filter(Boolean),
       installedAt,
       updatedAt: new Date().toISOString(),
       managedFiles: Object.fromEntries(Object.entries(manifest).sort()),
