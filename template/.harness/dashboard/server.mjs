@@ -202,7 +202,13 @@ function state() {
 
 // ── http ─────────────────────────────────────────────────────────────────────
 
-const INDEX = readFileSync(join(here, "index.html"));
+let INDEX;
+try {
+  INDEX = readFileSync(join(here, "index.html"));
+} catch (e) {
+  console.error(`[a1-harness] cannot read ${join(here, "index.html")}: ${e.message}`);
+  process.exit(1);
+}
 const server = createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/api/state") {

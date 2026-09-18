@@ -246,6 +246,7 @@ function renderRail(st) {
   const h = st.hardware, memPct = Math.round(100 * (1 - h.freeMemGb / h.totalMemGb)), cpuPct = Math.min(100, Math.round(100 * h.load1 / h.cpus));
   const hj = h.hardwareJson;
   const gate = !hj ? `<div class="ollama-gate unknown">ollama gate: no hardware.json yet</div>`
+    : hj._invalid ? `<div class="ollama-gate" style="color:var(--red)">ollama gate: hardware.json is malformed</div>`
     : hj.ollamaOk ? `<div class="ollama-gate ok">ollama gate: allowed</div>`
     : `<div class="ollama-gate">ollama gate: blocked${hj.reason ? " — " + esc(hj.reason) : ""}</div>`;
   $("r-hw").innerHTML = `
@@ -287,7 +288,12 @@ function renderGraph(agents) {
   const nodes = [], edges = [];
   let row = 0;
   // Roots that have children get their own band with the subtree laid out to the right.
+  // `seen` guards against a ppid cycle (pid reuse, spoofed process data) turning this
+  // into infinite recursion — each pid is placed at most once.
+  const seen = new Set();
   const place = (a, depth, parent) => {
+    if (seen.has(a.pid)) return;
+    seen.add(a.pid);
     const n = { a, x: X0 + depth * GX, y: Y0 + row * GY };
     nodes.push(n);
     // Orthogonal elbow with an arrowhead: straight right for the first child
