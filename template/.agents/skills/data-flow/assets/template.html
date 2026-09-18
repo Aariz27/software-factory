@@ -1,0 +1,179 @@
+<!--
+  data-flow template
+  ===================
+  The data-flow skill fills this page in per its "Render" step:
+
+  - The COLUMNS marker comment (in the svg body below) is replaced with
+    one <g class="column"> per tier (CLIENT / SERVER, or more tiers if
+    the project has a queue, a third-party API, a cron job, etc). Each
+    column has a heading <text class="col-heading"> and one
+    <g class="box"> per real component in that tier (a form, a route,
+    a table, a function) with the real name from the code and a small
+    file:line under it.
+  - The EDGES marker comment is replaced with one <path class="edge">
+    per data transfer, each with a matching <text class="label">.
+    Edges use only
+    horizontal/vertical segments (right-angle elbows), no arrowheads.
+    Requests run left-to-right near the top, responses run
+    right-to-left lower down, and a server-to-store round trip is a
+    loop that returns to the same box.
+  - The vertical dashed <line class="divider"> is duplicated once per
+    boundary between tiers (one line between CLIENT and SERVER, another
+    if a third tier is added, etc).
+  - #heading-title / #heading-source in the <header> are replaced with
+    the resolved argument text and the real source file path(s) read.
+  - If the project only has one tier, use a single column, drop the
+    divider, and say "single-tier" in the heading — do not invent a
+    second tier to fill the layout.
+
+  The example content below (a signup <form> posting to
+  POST /api/users, which writes to db.users and returns json) is a
+  worked placeholder. The skill replaces it; it is not meant to ship
+  as-is. Everything below fits a phone-width viewport because the
+  <svg> scales via viewBox + width="100%" — on very narrow screens the
+  columns may need to stack vertically instead of side-by-side, using
+  the same divider style rotated to horizontal.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>data flow</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0d0f12;
+    color: #e6e6e6;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  header {
+    padding: 24px 20px 8px 20px;
+  }
+  header h1 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: #e6e6e6;
+  }
+  header p {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+    word-break: break-word;
+  }
+  .diagram-wrap {
+    width: 100%;
+    padding: 8px 12px 32px 12px;
+    box-sizing: border-box;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .col-heading {
+    font-size: 13px;
+    fill: #6b7280;
+    letter-spacing: 3px;
+  }
+  .box rect {
+    fill: #15181d;
+    stroke: #262a31;
+    stroke-width: 1;
+  }
+  .box text.box-label {
+    font-size: 16px;
+    fill: #e6e6e6;
+  }
+  .box text.box-src {
+    font-size: 11px;
+    fill: #6b7280;
+  }
+  .divider {
+    stroke: #3a3f47;
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+  .edge {
+    fill: none;
+    stroke: #e0b44a;
+    stroke-width: 2;
+  }
+  .label {
+    font-size: 13px;
+  }
+  .label.request {
+    fill: #6b7280;
+  }
+  .label.response {
+    fill: #e0b44a;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="heading-title">data-flow: signup form submission</h1>
+  <p id="heading-source">app/signup/page.tsx, app/api/users/route.ts</p>
+</header>
+<div class="diagram-wrap">
+  <svg viewBox="0 0 1000 520" width="100%" role="img">
+    <title>Data flow diagram: signup form submission</title>
+
+    <!-- COLUMNS -->
+    <g class="column" id="col-client">
+      <text class="col-heading" x="60" y="45">CLIENT</text>
+
+      <g class="box" id="box-form">
+        <rect x="60" y="80" width="200" height="60" rx="6"></rect>
+        <text class="box-label" x="160" y="105" text-anchor="middle">&lt;form&gt;</text>
+        <text class="box-src" x="160" y="124" text-anchor="middle">app/signup/page.tsx:42</text>
+      </g>
+
+      <g class="box" id="box-render">
+        <rect x="60" y="380" width="200" height="60" rx="6"></rect>
+        <text class="box-label" x="160" y="405" text-anchor="middle">render(ui)</text>
+        <text class="box-src" x="160" y="424" text-anchor="middle">app/signup/page.tsx:58</text>
+      </g>
+    </g>
+
+    <g class="column" id="col-server">
+      <text class="col-heading" x="560" y="45">SERVER</text>
+
+      <g class="box" id="box-route">
+        <rect x="560" y="80" width="220" height="60" rx="6"></rect>
+        <text class="box-label" x="670" y="105" text-anchor="middle">POST /api/users</text>
+        <text class="box-src" x="670" y="124" text-anchor="middle">app/api/users/route.ts:12</text>
+      </g>
+
+      <g class="box" id="box-db">
+        <rect x="840" y="80" width="120" height="60" rx="6"></rect>
+        <text class="box-label" x="900" y="105" text-anchor="middle">db.users</text>
+        <text class="box-src" x="900" y="124" text-anchor="middle">route.ts:15</text>
+      </g>
+    </g>
+    <!-- /COLUMNS -->
+
+    <line class="divider" x1="500" y1="60" x2="500" y2="460"></line>
+
+    <!-- EDGES -->
+    <path class="edge" d="M260,110 L560,110"></path>
+    <text class="label request" x="330" y="102">request</text>
+
+    <path class="edge" d="M780,95 L840,95"></path>
+    <text class="label request" x="785" y="87">insert</text>
+
+    <path class="edge" d="M900,140 L900,180 L670,180 L670,140"></path>
+    <text class="label response" x="700" y="174">row</text>
+
+    <path class="edge" d="M600,140 L600,300 L260,300 L260,380"></path>
+    <text class="label response" x="330" y="294">json</text>
+    <!-- /EDGES -->
+  </svg>
+</div>
+</body>
+</html>

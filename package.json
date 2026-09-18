@@ -1,0 +1,28 @@
+{
+  "name": "create-software-factory",
+  "version": "0.1.0",
+  "description": "Software Factory: AI Blueprint's /command workflow plus model routing, usage-window tracking, deterministic gates, diagram commands and a read-only dashboard. Installs into an existing project.",
+  "type": "module",
+  "bin": {
+    "create-software-factory": "bin/create-software-factory.js"
+  },
+  "files": [
+    "bin/",
+    "template/",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "ai-blueprint",
+    "software-factory",
+    "claude-code",
+    "codex",
+    "agentic",
+    "workflow"
+  ],
+  "license": "MIT"
+}

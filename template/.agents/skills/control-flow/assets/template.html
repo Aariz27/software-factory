@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>control-flow: fetchUser -&gt; validate -&gt; ok? -&gt; save/reject -&gt; handleError</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0d0f12;
+    color: #e6e6e6;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  .page {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+  .heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e6e6e6;
+    margin: 0 0 6px 0;
+    word-wrap: break-word;
+  }
+  .sources {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+  .diagram-wrap {
+    width: 100%;
+    overflow: hidden;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .node rect, .node polygon {
+    fill: #15181d;
+    stroke: #262a31;
+    stroke-width: 1;
+  }
+  .node text {
+    fill: #e6e6e6;
+    font-size: 16px;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .node.condition rect, .node.condition polygon {
+    fill: #15181d;
+    stroke: #262a31;
+  }
+  .node.failure rect {
+    fill: #1c1416;
+    stroke: #e5484d;
+  }
+  .node.failure text {
+    fill: #e6e6e6;
+  }
+  .node.untaken rect, .node.untaken polygon {
+    fill: #15181d;
+    stroke: #4b5059;
+  }
+  .node.untaken text {
+    fill: #6b7280;
+  }
+  .edge {
+    fill: none;
+    stroke-width: 2px;
+  }
+  .edge.main {
+    stroke: #e0b44a;
+  }
+  .edge.false {
+    stroke: #4b5059;
+  }
+  .edge.throws {
+    stroke: #e5484d;
+  }
+  .edge-label {
+    font-size: 13px;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    text-anchor: middle;
+  }
+  .edge-label.true {
+    fill: #e0b44a;
+  }
+  .edge-label.false {
+    fill: #6b7280;
+  }
+  .edge-label.throws {
+    fill: #e5484d;
+  }
+  .caption {
+    font-size: 15px;
+    fill: #6b7280;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <!--
+    HEADING: replace the text below with the literal argument the user passed
+    to /control-flow, and list every file:line source consulted underneath it.
+  -->
+  <p class="heading">/control-flow the login handler in auth.py</p>
+  <p class="sources">auth.py:12, auth.py:18, auth.py:21, auth.py:23, auth.py:27, auth.py:31</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 480 780" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+      <title>Control flow: fetchUser, validate, ok? branch, save, throws to handleError</title>
+      <rect x="0" y="0" width="480" height="780" fill="#0d0f12" />
+
+      <!--
+        HOW THE SKILL FILLS THIS PAGE:
+        Replace everything inside the NODES ... /NODES marker comments below with the real
+        flow extracted from the code. Keep the same structure for every node and edge,
+        not only the first one:
+          - one <g class="node"> per step, using <rect rx="6"> for a normal step,
+            <polygon> for a condition (diamond), class="node failure" for an error
+            handler, class="node untaken" for a branch not taken on the main path.
+          - one <path class="edge main|false|throws"> per edge, plus an
+            <text class="edge-label true|false|throws"> label where the edge branches.
+          - one <text class="caption"> per row in the left margin, in plain words:
+            "what happens first", "what happens next",
+            "what only happens if something is true",
+            "what happens when something fails".
+        Keep node labels as real names from the code (function/statement names), never
+        invented ones, and keep row spacing ~120px with nodes centered on one vertical axis.
+      -->
+
+      <!-- NODES -->
+
+      <!-- left margin captions -->
+      <text class="caption" x="8" y="66">what happens first</text>
+      <text class="caption" x="8" y="186">what happens next</text>
+      <text class="caption" x="8" y="300">what only happens if</text>
+      <text class="caption" x="8" y="316">something is true</text>
+      <text class="caption" x="8" y="516">what happens when</text>
+      <text class="caption" x="8" y="532">something fails</text>
+
+      <!-- edge: fetchUser() -> validate(input), main path -->
+      <path class="edge main" d="M 200 90 L 200 160" />
+
+      <!-- edge: validate(input) -> ok? diamond, main path -->
+      <path class="edge main" d="M 200 210 L 200 270" />
+
+      <!-- edge: ok? -> reject(), false branch, sideways and dim -->
+      <path class="edge false" d="M 250 310 C 300 310, 320 310, 355 310" />
+      <text class="edge-label false" x="300" y="298">false</text>
+
+      <!-- edge: ok? -> save(user), true branch continues down -->
+      <path class="edge main" d="M 200 350 L 200 410" />
+      <text class="edge-label true" x="214" y="382">true</text>
+
+      <!-- edge: save(user) -> handleError(err), throws branch, sideways and red -->
+      <path class="edge throws" d="M 275 460 C 320 460, 335 460, 365 460" />
+      <text class="edge-label throws" x="320" y="448">throws</text>
+
+      <!-- node: fetchUser() -->
+      <g class="node">
+        <rect x="120" y="45" width="160" height="45" rx="6" />
+        <text x="200" y="68">fetchUser()</text>
+      </g>
+
+      <!-- node: validate(input) -->
+      <g class="node">
+        <rect x="120" y="165" width="160" height="45" rx="6" />
+        <text x="200" y="188">validate(input)</text>
+      </g>
+
+      <!-- node: ok? condition (diamond) -->
+      <g class="node condition">
+        <polygon points="200,270 255,310 200,350 145,310" />
+        <text x="200" y="311">ok?</text>
+      </g>
+
+      <!-- node: reject(), untaken branch, dim grey -->
+      <g class="node untaken">
+        <rect x="355" y="287" width="115" height="45" rx="6" />
+        <text x="412" y="310">reject()</text>
+      </g>
+
+      <!-- node: save(user), main path -->
+      <g class="node">
+        <rect x="120" y="415" width="160" height="45" rx="6" />
+        <text x="200" y="438">save(user)</text>
+      </g>
+
+      <!-- node: handleError(err), failure handler, red border -->
+      <g class="node failure">
+        <rect x="365" y="437" width="115" height="45" rx="6" />
+        <text x="422" y="460">handleError(err)</text>
+      </g>
+
+      <!-- /NODES -->
+    </svg>
+  </div>
+</div>
+</body>
+</html>

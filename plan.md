@@ -1,0 +1,54 @@
+# My Software Factory — Plan
+
+Status: planning. Created 2026-09-18, revised 2026-09-18. Supersedes `software-factory/My Version/PLAN.md`.
+
+## What I am building
+ai-blueprint, plus our own additions on top. The host CLI the user is typing into (Claude Code, Codex or Antigravity) stays in control of the loop — there is no custom Python engine. SSSF is inspiration only: we import none of its code.
+
+## Requirements (as stated by me)
+1. **Install:** one command — `npm i -g`, `npx <name>`, or a shell one-liner. Our own installer.
+2. **Onboarding:** uses the subscriptions already logged in on this Mac (Claude Code, Codex, Antigravity, local Ollama). No API keys. No re-sign-in.
+3. **Build loop:** ai-blueprint's `/feature → /implement → /check → /audit → /complete` loop, run by typing `/` commands in the host CLI.
+4. **Memory:** everything from ai-blueprint — `blueprint/project-plan.md`, `build-plan.md`, `config.json`, `context/` (overview, coding-standards, ai-interaction, current-feature, findings, review), `history/{features,fixes,rollbacks}/`, `.state/run.json`.
+5. **Token tracking:** subscription usage windows (5-hour and weekly %), polled by script, plus per-command token counts in SQLite.
+
+## Features added on top of ai-blueprint
+1. **Our own installer** — one `npx` / shell command that drops ai-blueprint's skills + memory files + our additions into a project.
+2. **Onboarding** — detects which CLIs are logged in (`claude`, `codex`, `agy`, `ollama`), reads the model cards (`~/Documents/software-factory/My Version/model-cards/`, 22 cards), assigns one model to each `/` command, writes the choice into `blueprint/config.json`. Done once per project.
+3. **Per-command model routing** — each `SKILL.md` starts by reading `config.json`; if the assigned model is not the host, the host delegates the step to that CLI headless (`agy -p`, `codex exec`, `claude -p`) via Bash and reads back the result. Example: `/plan` → Opus; `/implement` → Gemini via `agy -p`.
+4. **Usage-window tracking** — a script polls `claude -p "/usage"`, `agy -p "/usage" --output-format json`, and `codex app-server` JSON-RPC `account/rateLimits/read` every 60 seconds with no stored state; a skill reads the result before delegating; a model past the threshold (e.g. 95%) is blocked, the command falls back to its backup model, and the switch is reported. Tokens per command are recorded in SQLite. No dollar-cost column.
+5. **Per-model prompt tuning** — after onboarding assigns a model to a command, a script rewrites that skill's prompt text using the matching guide in `~/.claude/skills/prompting/` (Fable 5, Opus, Sonnet 5, Qwen 2.5 exist; GPT and Gemini guides do not yet). A script decides which guide applies, not an LLM.
+6. **Localhost visualizer** — reads `blueprint/.state/run.json` and our SQLite trace (model used, tokens, gate results per command). `run.json` stays as the quick "what just finished" record.
+7. **Deterministic gates as scripts** (same pattern as blueprint's `run-state.mjs`), called by the skills:
+   - declared artifact files exist and are not empty;
+   - every file the builder claims it changed exists on disk;
+   - a review with approved=true has no blocking items and no unmet requirements; approved=false names at least one problem;
+   - the test command exits 0 (last N chars of output kept on failure);
+   - commit refused when `git status --porcelain` is empty;
+   - the real `git diff` is captured for the reviewer instead of the builder's description.
+8. **Per-command write permissions** — delegation passes `--permission-mode` / `--allowedTools` / `--disallowedTools` to the child CLI (Codex and agy equivalents to be verified); a git-diff check script runs afterwards as backstop.
+9. **Bounded loops written into `/implement`** — max 3 test→fix rounds, max 2 review→revise rounds; counter kept in `run.json`.
+10. **Cross-model review** — `/audit independent` routes to a different model than the one that built.
+11. **Five hand-written docs + `/plan`** — `/plan` reads `spec.md`, `data_contract.md`, `features.md`, `ux.md`, `ui.md` and writes `blueprint/build-plan.md`.
+12. **`/prototype <doc>`** — ai-blueprint's `/prototype` takes one argument naming any of the five hand-written documents (`/prototype ui`, `/prototype data_contract`) and opens an HTML page showing the result of that document's decisions as a diagram (flow chart, tree, data model — whatever fits).
+13. **`/control-flow`, `/data-flow`, `/error-flow`, `/io`** — written, in `.claude/skills/`. Each takes any free-text argument (`/io main.py`, `/io LLM architecture in agents.py`), reads the real code, and renders one self-contained HTML diagram (dark background, monospace, yellow happy path, red failures), saved to `prototypes/diagrams/` and opened in the browser.
+14. **Hooks skip headless children** — parent-process check as in `~/.claude/hooks/snapshot-checkpoint.sh` (skips when the parent is `claude -p` / `--print`), applied to every hook that must not fire inside a child.
+
+## Hand-written project documents
+Every project has five documents the user writes by hand before `/plan` runs:
+1. `spec.md` — the technical decisions the user makes. Skeleton already exists: `~/.claude/skills/project-spec/project-spec-SKILL.md` (`/project-spec`).
+2. `data_contract.md` — the data model the project needs. Currently a skill (`~/.claude/skills/data-contract/SKILL.md`, `/data-contract`); to be turned into a skeleton file for the factory.
+3. `features.md` — every feature the app needs.
+4. `ux.md` — UX decisions, written however the user wants; my own style is the user's point of view as they move through the app, split into the different routes they can take.
+5. `ui.md` — UI direction: images, words, or both.
+
+(The `features.md` in this folder's root is the factory's own feature list, not a project's.)
+
+## Source material
+- ai-blueprint v1.9.0 stock install: `~/Documents/software-factory/blueprint-test/` (24 commands as `SKILL.md`, memory files in `blueprint/`, `run-state.mjs`).
+- SSSF v1 stock install (inspiration only, no code reused): `~/Documents/software-factory/sssf-test/`.
+- Model cards: `~/Documents/software-factory/My Version/model-cards/`.
+- Research reports (scratchpad): `research-blueprint.md`, `research-sssf-and-plan.md`, `research-web.md`.
+
+## Conflicts still open
+1. **Where the test command lives.** ai-blueprint keeps the Verify command as text in `AGENTS.md` Commands. Our gate script (feature 7) needs the same command. One place must be the source of truth and the other must read from it.

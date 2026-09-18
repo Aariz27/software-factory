@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IO Diagram</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0d0f12;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 16px 64px;
+  }
+  .heading {
+    color: #e6e6e6;
+    font-size: 16px;
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+  .source {
+    color: #6b7280;
+    font-size: 12px;
+    margin-bottom: 28px;
+    word-break: break-word;
+  }
+  svg { display: block; width: 100%; height: auto; }
+  .box-fill { fill: #15181d; }
+  .box-stroke { stroke: #262a31; stroke-width: 1; }
+  .arrow-line { stroke: #e0b44a; stroke-width: 2; }
+  .arrow-head { fill: #e0b44a; }
+  .name-text { fill: #e6e6e6; font-size: 18px; font-family: inherit; }
+  .json-key { fill: #e6e6e6; font-size: 15px; font-family: inherit; }
+  .json-str { fill: #e0b44a; font-size: 15px; font-family: inherit; }
+  .json-num { fill: #e6e6e6; font-size: 15px; font-family: inherit; }
+  .caption {
+    fill: #6b7280;
+    font-size: 13px;
+    font-family: inherit;
+    letter-spacing: 2px;
+    text-anchor: middle;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!--
+    HOW THE SKILL FILLS THIS PAGE
+    ------------------------------
+    1. Replace "heading" text with the argument passed to /io (e.g. "getUser(id) in api/users.py").
+    2. Replace "source" text with the real file path(s) (and line numbers) the IO was read from.
+    3. Inside the ROWS marker comment region, add one <g class="row"> per unit under inspection
+       (one row per public function/agent call when the argument is a whole file or "architecture",
+       top to bottom in call order; one row when the argument is a single function/endpoint).
+    4. Each row contains:
+         - one <g class="input"> per input parameter (stacked vertically if there is more than one)
+         - exactly one <g class="unit"> (the middle box, named exactly as in the code)
+         - one <g class="output"> per output field/value (stacked vertically if there is more than one)
+       Every box, arrow, and caption rule below applies to EVERY row and EVERY box on that row,
+       not just the first row or the first box.
+    5. Position boxes on a row using a translate() on each <g> — see the worked example below for
+       the x/y math (left column x=40, middle column x=420, right column x=800, ~80px gaps between
+       box edges, rows stacked with enough vertical gap to fit the tallest box in the row).
+    6. Arrows: a 2px #e0b44a line from the right edge of a left/middle box to the left edge of the
+       next box, ending in a small open arrowhead (see .arrow-head polygon in the example).
+    7. On narrow screens (viewBox width < ~500 rendered), the three boxes in a row may stack
+       vertically instead of horizontally — recompute positions for that case if you detect a
+       narrow target; the viewBox + width="100%" already make the SVG itself scale without
+       horizontal scroll at any width.
+  -->
+  <div class="heading">getUser(id) — api/users.py</div>
+  <div class="source">Source: api/users.py:14</div>
+
+  <svg viewBox="0 0 1200 220" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <title>IO diagram: getUser(id)</title>
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+        <polygon points="0 0, 10 5, 0 10" class="arrow-head" />
+      </marker>
+    </defs>
+
+    <!-- ROWS -->
+    <g class="row">
+      <!-- input box -->
+      <g class="input" transform="translate(40,60)">
+        <rect class="box-fill box-stroke" x="0" y="0" width="220" height="70" rx="6" />
+        <text class="name-text" x="20" y="42">"usr_8f2k"</text>
+        <text class="caption" x="110" y="100">INPUT</text>
+      </g>
+
+      <!-- arrow: input -> unit -->
+      <line class="arrow-line" x1="260" y1="95" x2="415" y2="95" marker-end="url(#arrowhead)" />
+
+      <!-- unit box (middle) -->
+      <g class="unit" transform="translate(420,60)">
+        <rect class="box-fill box-stroke" x="0" y="0" width="220" height="70" rx="6" />
+        <text class="name-text" x="20" y="42">getUser(id)</text>
+      </g>
+
+      <!-- arrow: unit -> output -->
+      <line class="arrow-line" x1="640" y1="95" x2="795" y2="95" marker-end="url(#arrowhead)" />
+
+      <!-- output box -->
+      <g class="output" transform="translate(800,40)">
+        <rect class="box-fill box-stroke" x="0" y="0" width="320" height="110" rx="6" />
+        <text x="20" y="30">
+          <tspan class="json-key">{</tspan>
+        </text>
+        <text x="20" y="52">
+          <tspan class="json-key">  name: </tspan><tspan class="json-str">"John Doe"</tspan><tspan class="json-key">,</tspan>
+        </text>
+        <text x="20" y="74">
+          <tspan class="json-key">  email: </tspan><tspan class="json-str">"john@acme.dev"</tspan>
+        </text>
+        <text x="20" y="96">
+          <tspan class="json-key">}</tspan>
+        </text>
+        <text class="caption" x="160" y="130">OUTPUT</text>
+      </g>
+    </g>
+    <!-- /ROWS -->
+
+  </svg>
+</div>
+</body>
+</html>

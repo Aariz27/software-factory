@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "workflow": {
+    "stepReview": "feature",
+    "checkpointCommits": "disabled"
+  },
+  "git": {
+    "featureBranchPrefix": "feature/",
+    "fixBranchPrefix": "fix/",
+    "rollbackBranchPrefix": "rollback/"
+  },
+  "verification": {
+    "logicTests": "when-configured",
+    "uiEvidence": "when-available"
+  },
+  "review": {
+    "independentExecution": "automatic"
+  },
+  "qualityGates": {
+    "regular": {
+      "audit": "manual",
+      "independentReview": "when-sensitive",
+      "check": "manual",
+      "tryGuide": "manual"
+    },
+    "continuous": {
+      "audit": "manual",
+      "independentReview": "when-sensitive",
+      "check": "manual",
+      "tryGuide": "manual"
+    }
+  },
+  "continuous": {
+    "maxFeatures": null,
+    "maxRepairAttempts": 2,
+    "finalIntegrationAudit": false
+  }
+}
