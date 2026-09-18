@@ -7,3 +7,5 @@ build/
 sessions.json
 *.tgz
 .playwright-mcp/
+.claude/worktrees/
+audit.md
