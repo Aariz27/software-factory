@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS gates (
   ts          TEXT NOT NULL,
   session_id  TEXT,
   command     TEXT,
-  gate        TEXT NOT NULL,                   -- artifacts_exist | claimed_files_exist | verdict_consistent | tests_pass | nonempty_diff | scope
+  gate        TEXT NOT NULL,                   -- artifacts | claimed | review | test | commit-ready | diff | scope (gates.mjs gate names)
   passed      INTEGER NOT NULL,                -- 1 / 0
   evidence    TEXT                             -- tail of output, path list, ...
 );
