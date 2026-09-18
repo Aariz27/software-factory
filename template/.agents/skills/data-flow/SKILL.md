@@ -79,8 +79,9 @@ the render step, and skipping straight to drawing is how boxes end up wrong.
 5. Save the filled page to `prototypes/diagrams/data-flow-<slug>.html` in
    the project root (slug = a short kebab-case name from the argument),
    creating the `prototypes/diagrams/` folder if it doesn't exist.
-6. Open it: `open prototypes/diagrams/data-flow-<slug>.html` (macOS). Do not
-   add any other browser-automation step — `open` is the entire job.
+6. Open it with the command for the OS the shell reports: `open <path>` on macOS,
+   `xdg-open <path>` on Linux, `start "" <path>` on Windows. Do not add any other
+   browser-automation step — this one command is the entire job.
 
 ## Style contract
 

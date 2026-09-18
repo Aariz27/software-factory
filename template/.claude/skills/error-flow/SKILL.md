@@ -79,8 +79,9 @@ before touching the template — it is what fills `<!-- BRANCHES -->`.
    the project root (the directory containing the code you read), creating
    `prototypes/diagrams/` if it doesn't exist. `<slug>` is the argument,
    lowercased, non-alphanumerics turned into `-`.
-4. Open it: `open <path>` (macOS). Do nothing else with the browser —
-   no automation, no screenshot loop, just the one `open` call.
+4. Open it with the command for the OS the shell reports: `open <path>` on macOS,
+   `xdg-open <path>` on Linux, `start "" <path>` on Windows. Do nothing else with the
+   browser — no automation, no screenshot loop, just the one call.
 
 ## Style contract
 

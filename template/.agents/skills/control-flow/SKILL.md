@@ -64,8 +64,10 @@ and it is what you re-check against the code before writing any SVG.
    working directory). Create `prototypes/diagrams/` under it if it doesn't exist, and save
    the filled page as `prototypes/diagrams/control-flow-<slug>.html`, where `<slug>` is the
    argument text lowercased, spaces and punctuation turned into hyphens.
-5. Run `open <path>` (macOS) to open the saved file in the default browser. Do not add any
-   other browser-automation step — `open` is the entire delivery mechanism.
+5. Open the saved file in the default browser with the command for the OS the shell
+   reports: `open <path>` on macOS, `xdg-open <path>` on Linux, `start "" <path>` on
+   Windows. Do not add any other browser-automation step — this one command is the
+   entire delivery mechanism.
 
 ## Style contract
 

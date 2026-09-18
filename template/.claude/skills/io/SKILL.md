@@ -82,8 +82,9 @@ box.
 5. Save the finished file to `prototypes/diagrams/io-<slug>.html` in the project root
    (`<slug>` = a short kebab-case version of the argument), creating the `prototypes/diagrams`
    folder if it does not exist.
-6. Open it: `open prototypes/diagrams/io-<slug>.html` (macOS). Do nothing else with the
-   browser — no further automation beyond this one `open` call.
+6. Open it with the command for the OS the shell reports: `open <path>` on macOS,
+   `xdg-open <path>` on Linux, `start "" <path>` on Windows. Do nothing else with the
+   browser — no further automation beyond this one call.
 
 ## Style contract
 
