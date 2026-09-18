@@ -37,6 +37,20 @@ ${Y}   █████╗  ██╗
   ${D}A1 Harness v${pkg.version} · built on AI Blueprint ${BLUEPRINT_VERSION}${X}
 `;
 
+// Thrown for bad CLI usage so the top-level handler can exit 2 instead of the
+// generic 1 used for real failures (target missing, dashboard not installed).
+class UsageError extends Error {
+  constructor(message) {
+    super(message);
+    this.exitCode = 2;
+  }
+}
+
+// Flag names a user might type without their leading dashes by mistake. A bare
+// positional matching one of these is almost certainly a typo'd flag, not a
+// target directory, so it is rejected instead of silently becoming the target.
+const KNOWN_FLAG_NAMES = new Set(["force", "dry-run", "no-dashboard", "port", "help", "h"]);
+
 function parseArgs(argv) {
   const opts = { target: process.cwd(), force: false, dryRun: false, help: false, dashboard: true, port: 4747, command: "install" };
   for (let i = 0; i < argv.length; i++) {
@@ -44,10 +58,16 @@ function parseArgs(argv) {
     if (a === "--force") opts.force = true;
     else if (a === "--dry-run") opts.dryRun = true;
     else if (a === "--no-dashboard") opts.dashboard = false;
-    else if (a === "--port") opts.port = Number(argv[++i]);
+    else if (a === "--port") {
+      const value = argv[++i];
+      const port = Number(value);
+      if (value === undefined || !Number.isInteger(port)) throw new UsageError(`--port needs a number, got ${value ?? "nothing"}`);
+      opts.port = port;
+    }
     else if (a === "--help" || a === "-h") opts.help = true;
     else if (a === "dashboard" && i === 0) opts.command = "dashboard";
-    else if (a.startsWith("-")) throw new Error(`unknown flag: ${a}`);
+    else if (a.startsWith("-")) throw new UsageError(`unknown flag: ${a}`);
+    else if (KNOWN_FLAG_NAMES.has(a)) throw new UsageError(`"${a}" looks like a flag missing its dashes — did you mean --${a}?`);
     else opts.target = resolve(a);
   }
   return opts;
@@ -93,13 +113,17 @@ function isGitRepo(dir) {
 
 function main() {
   const opts = parseArgs(process.argv.slice(2));
-  console.log(BANNER);
   if (opts.help) {
     console.log(`  Usage: npx create-software-factory [target-dir] [--force] [--dry-run] [--no-dashboard] [--port N]
          npx create-software-factory dashboard [target-dir] [--port N]   start the read-only dashboard for an installed project\n`);
     return;
   }
+  console.log(BANNER);
   if (opts.command === "dashboard") {
+    if (opts.dryRun) {
+      console.log(`  ${D}dashboard not started in dry run${X}\n`);
+      return;
+    }
     startDashboard(opts.target, opts.port, { detached: false, open: true });
     return;
   }
@@ -190,5 +214,5 @@ try {
   main();
 } catch (err) {
   console.error(`\n  ${R}error${X} ${err.message}\n`);
-  process.exit(1);
+  process.exit(err.exitCode ?? 1);
 }
