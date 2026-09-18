@@ -16,6 +16,9 @@
   "engines": {
     "node": ">=22"
   },
+  "scripts": {
+    "test": "node --test test/"
+  },
   "keywords": [
     "ai-blueprint",
     "software-factory",
