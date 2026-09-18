@@ -53,9 +53,15 @@ function parseArgs(argv) {
   return opts;
 }
 
+// Stray local session files that must never be copied into a target project,
+// even if one exists in this checkout of template/ (see template/.npmignore
+// for the matching npm-publish exclusion).
+const SKIP_NAMES = new Set([".sessions-state.json", "sessions.json"]);
+
 function walk(dir) {
   const out = [];
   for (const name of readdirSync(dir)) {
+    if (SKIP_NAMES.has(name)) continue;
     const p = join(dir, name);
     if (statSync(p).isDirectory()) out.push(...walk(p));
     else out.push(p);
