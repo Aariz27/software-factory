@@ -12,6 +12,11 @@
 //
 // Output is stdout only: one PASS/FAIL line per gate plus detail lines.
 // Exit 0 = pass, 1 = fail, 2 = bad usage. Nothing is written to disk.
+//
+// "Files in scope" patterns (one per `-` bullet, path in backticks): an exact
+// path, a path ending in `/` meaning "everything under that directory", or a
+// glob per node:path's matchesGlob (e.g. `**` allows every changed path,
+// `src/**` allows everything under src) — no glob syntax is special-cased.
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join, matchesGlob } from "node:path";
@@ -168,10 +173,19 @@ const gates = {
     const patterns = bullets(listed).map((b) => b.match(/^`([^`]+)`/)?.[1]).filter(Boolean);
     if (patterns.length === 0) return result("scope", ["\"Files in scope\" lists no paths"]);
 
+    // A pattern ending in "/" means "everything under that directory"; otherwise
+    // an exact path or a matchesGlob pattern (see header comment for `**`).
+    const matchesPattern = (f, p) => (p.endsWith("/") ? f.startsWith(p) : f === p || matchesGlob(f, p));
+
+    const changed = changedFiles(base);
     // blueprint/ is the workflow's own memory (the spec's ticked steps, findings, review); always allowed.
-    const outside = changedFiles(base).filter(
-      (f) => !f.startsWith("blueprint/") && !patterns.some((p) => f === p || matchesGlob(f, p)),
+    const outside = changed.filter(
+      (f) => !f.startsWith("blueprint/") && !patterns.some((p) => matchesPattern(f, p)),
     );
+
+    for (const p of patterns.filter((p) => !changed.some((f) => matchesPattern(f, p))))
+      console.log(`  (note) "${p}" in "Files in scope" matched 0 changed files`);
+
     return result("scope", outside.map((f) => `${f} is changed but not listed in "Files in scope"`),
       `every changed file matches the ${patterns.length} listed path(s)`);
   },
