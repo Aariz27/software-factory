@@ -19,7 +19,7 @@
 // `src/**` allows everything under src) — no glob syntax is special-cased.
 
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { join, matchesGlob } from "node:path";
+import { join, matchesGlob, resolve, sep } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 
 // path.matchesGlob is marked experimental on Node 22/23; the warning is noise here.
@@ -99,7 +99,13 @@ const gates = {
 
   claimed(files) {
     if (files.length === 0) return usage("claimed needs at least one file");
-    const problems = files.filter((f) => !existsSync(join(ROOT, f))).map((f) => `${f} does not exist on disk`);
+    const problems = [];
+    for (const f of files) {
+      const p = resolve(ROOT, f);
+      if (p !== ROOT && !p.startsWith(ROOT + sep)) { problems.push(`${f} resolves outside the repo`); continue; }
+      if (!existsSync(p)) problems.push(`${f} does not exist on disk`);
+      else if (!statSync(p).isFile()) problems.push(`${f} is not a file`);
+    }
     return result("claimed", problems, `${files.length} claimed file(s) exist`);
   },
 
