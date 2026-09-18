@@ -4,6 +4,9 @@
 //
 //   node .harness/gates.mjs artifacts <file>...   declared artifacts exist and are not empty
 //   node .harness/gates.mjs claimed <file>...     every file the builder claims it changed exists
+//
+// <file> arguments are always repo-root-relative, the same as every path this
+// script reads or prints (current-feature.md, findings.md, changedFiles()).
 //   node .harness/gates.mjs review [receipt]      review verdict agrees with its own findings
 //   node .harness/gates.mjs test [--tail N]       the AGENTS.md `Verify:` command exits 0
 //   node .harness/gates.mjs commit-ready          refuse a commit when there is nothing to commit
@@ -142,7 +145,13 @@ const gates = {
     if (!Number.isInteger(tail) || tail < 0) return usage("--tail needs a whole number");
 
     const commands = section(read("AGENTS.md") ?? "", "## Commands");
-    const cmd = (commands ?? "").match(/^\s*(?:-\s*)?Verify:\s*`?([^`\n]+?)`?\s*$/m)?.[1];
+    const line = (commands ?? "").match(/^\s*(?:-\s*)?Verify:\s*(.+?)\s*$/m)?.[1];
+    // The command itself may contain a backtick (e.g. a shell substitution), so
+    // take everything between the first and last backtick on the line, not the
+    // first pair — a naive non-greedy match truncates at that inner backtick.
+    const first = line?.indexOf("`") ?? -1;
+    const last = line?.lastIndexOf("`") ?? -1;
+    const cmd = first !== -1 && last > first ? line.slice(first + 1, last) : line;
     if (!cmd) return result("test", ["AGENTS.md Commands has no `Verify:` line — run /ci to define one"]);
 
     console.log(`running: ${cmd}`);
@@ -163,7 +172,9 @@ const gates = {
 
   diff([base = "HEAD"]) {
     process.stdout.write(git("diff", base));
-    const untracked = git("ls-files", "--others", "--exclude-standard").split("\n").filter(Boolean);
+    // Reuse changedFiles() for the untracked set instead of re-listing them here.
+    const tracked = new Set(git("diff", "--name-only", base).split("\n").filter(Boolean));
+    const untracked = changedFiles(base).filter((f) => !tracked.has(f));
     for (const f of untracked) {
       const d = spawnSync("git", ["diff", "--no-index", "--", "/dev/null", f], { cwd: ROOT, encoding: "utf8" });
       process.stdout.write(d.stdout);
