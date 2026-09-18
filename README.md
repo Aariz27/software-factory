@@ -1,6 +1,6 @@
-# Software Factory
+# A1 Harness
 
-A `/command`-driven development workflow for AI coding agents (Claude Code, Codex, Antigravity), installed into an existing project with one command:
+A1 Harness is a `/command`-driven development harness for AI coding agents (Claude Code, Codex, Antigravity), installed into an existing project with one command:
 
 ```bash
 npx create-software-factory
