@@ -55,33 +55,33 @@ function modelLists() {
 
 // ── probes: each resolves to {groupId: {label, fiveHour, weekly}} or {error} ─
 // "Sep 19 at 2:20am (Asia/Kuala_Lumpur)" → ISO, assuming the next such date from now.
-function claudeResetToIso(text) {
+export function claudeResetToIso(text, now = new Date()) {
   const m = text.match(/([A-Z][a-z]{2}) (\d{1,2})(?: at (\d{1,2})(?::(\d{2}))?(am|pm))?/);
   if (!m) return null;
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const mo = months.indexOf(m[1]); if (mo < 0) return null;
   let h = m[3] ? Number(m[3]) % 12 : 0; if (m[5] === "pm") h += 12;
-  const now = new Date();
   let d = new Date(now.getFullYear(), mo, Number(m[2]), h, Number(m[4] || 0));
   if (d.getTime() < now.getTime() - 86400e3) d = new Date(now.getFullYear() + 1, mo, Number(m[2]), h, Number(m[4] || 0));
   return d.toISOString();
 }
 
-async function probeClaude() {
-  const r = await exec("claude", ["-p", "/usage", "--output-format", "json"], { timeout: 60000 });
-  let text = "";
-  try { text = JSON.parse(r.out).result || ""; } catch { return { error: `claude: ${r.err || "no JSON"}`.trim() }; }
+export function parseClaudeUsage(text) {
   const five = text.match(/Current session:\s*(\d+)% used(?:\s*·\s*resets ([^\n]+))?/);
   const week = text.match(/Current week[^:]*:\s*(\d+)% used(?:\s*·\s*resets ([^\n]+))?/);
   if (!five && !week) return { error: `claude: could not find "% used" in /usage output` };
   const win = (m) => (m ? { usedPercent: Number(m[1]), resetsAt: m[2] ? claudeResetToIso(m[2]) : null, resetsText: m[2] ?? null } : null);
   return { claude: { label: "Claude Code", fiveHour: win(five), weekly: win(week) } };
 }
+async function probeClaude() {
+  const r = await exec("claude", ["-p", "/usage", "--output-format", "json"], { timeout: 60000 });
+  let text = "";
+  try { text = JSON.parse(r.out).result || ""; } catch { return { error: `claude: ${r.err || "no JSON"}`.trim() }; }
+  return parseClaudeUsage(text);
+}
 
-async function probeAgy() {
-  const r = await exec("agy", ["-p", "/usage", "--output-format", "json"], { timeout: 60000 });
-  let groups;
-  try { groups = JSON.parse(r.out).command?.data?.groups; } catch { return { error: `agy: ${r.err || "no JSON"}`.trim() }; }
+export function parseAgyUsage(json) {
+  const groups = json?.command?.data?.groups;
   if (!Array.isArray(groups)) return { error: "agy: /usage returned no groups" };
   const out = {};
   for (const g of groups) {
@@ -90,6 +90,12 @@ async function probeAgy() {
     out[id] = { label: `Antigravity — ${g.name}`, fiveHour: win("5h"), weekly: win("weekly") };
   }
   return out;
+}
+async function probeAgy() {
+  const r = await exec("agy", ["-p", "/usage", "--output-format", "json"], { timeout: 60000 });
+  let json;
+  try { json = JSON.parse(r.out); } catch { return { error: `agy: ${r.err || "no JSON"}`.trim() }; }
+  return parseAgyUsage(json);
 }
 
 async function probeCodex() {
@@ -112,6 +118,9 @@ async function probeCodex() {
   const line = r.out.split("\n").find((l) => /"id":2[,}]/.test(l));
   let rl;
   try { rl = JSON.parse(line).result?.rateLimits; } catch { return { error: `codex: ${r.err.slice(-200) || "no rateLimits reply"}`.trim() }; }
+  return parseCodexRateLimits(rl);
+}
+export function parseCodexRateLimits(rl) {
   if (!rl) return { error: "codex: rateLimits missing in reply" };
   const win = (w) => (w ? { usedPercent: w.usedPercent ?? null, resetsAt: w.resetsAt ? new Date(w.resetsAt * 1000).toISOString() : null, windowMinutes: w.windowDurationMins ?? null } : null);
   // Codex names its windows by length, not by "5h"/"weekly": ≤ 10 h counts as the short window.
@@ -127,10 +136,8 @@ async function probeOllama() {
 }
 
 // ── one poll ─────────────────────────────────────────────────────────────────
-export async function pollOnce(repo, models, log = () => {}) {
-  const threshold = readJson(join(repo, "blueprint", "harness.json"))?.usageBlockPercent ?? 95;
-  const probes = { claude: probeClaude, agy: probeAgy, codex: probeCodex, ollama: probeOllama };
-  const results = await Promise.all(Object.entries(probes).map(async ([cli, fn]) => (which(cli) ? fn() : { error: `${cli}: not installed` })));
+// Merge probe results into the usage.json document; a group is blocked at `threshold` percent.
+export function buildUsageDoc(results, models, threshold, polledAt = new Date().toISOString()) {
   const groups = {}, errors = [];
   for (const r of results) {
     if (r.error) { errors.push(r.error); continue; }
@@ -143,7 +150,15 @@ export async function pollOnce(repo, models, log = () => {}) {
       };
     }
   }
-  const doc = { polledAt: new Date().toISOString(), thresholdPercent: threshold, groups, errors };
+  return { polledAt, thresholdPercent: threshold, groups, errors };
+}
+
+export async function pollOnce(repo, models, log = () => {}) {
+  const threshold = readJson(join(repo, "blueprint", "harness.json"))?.usageBlockPercent ?? 95;
+  const probes = { claude: probeClaude, agy: probeAgy, codex: probeCodex, ollama: probeOllama };
+  const results = await Promise.all(Object.entries(probes).map(async ([cli, fn]) => (which(cli) ? fn() : { error: `${cli}: not installed` })));
+  const doc = buildUsageDoc(results, models, threshold);
+  const { groups, errors } = doc;
   const stateDir = join(repo, "blueprint", ".state");
   mkdirSync(stateDir, { recursive: true });
   const out = join(stateDir, "usage.json"), tmp = out + ".tmp";
