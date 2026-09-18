@@ -17,7 +17,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test"
   },
   "keywords": [
     "ai-blueprint",

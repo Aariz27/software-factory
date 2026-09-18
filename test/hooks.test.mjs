@@ -337,18 +337,12 @@ test("every hook exits 0 when given empty stdin", () => {
 // ── pure exported helpers ────────────────────────────────────────────────────
 
 test("detectDelegation recognizes each direct CLI delegation shape and extracts --model/-m", () => {
-  // BUG: the claude/agy regexes require a whitespace character before "-p" that is not the
-  // one already consumed by the mandatory `claude\s`/`agy\s` right after the CLI name, so the
-  // single most common invocation shape — "claude -p <prompt>" / "agy -p <prompt>" (used
-  // elsewhere in this very codebase, e.g. usage-poller.mjs's `claude -p "/usage" ...` and
-  // sf.mjs's LAUNCHERS.claude args) — is NOT detected as a delegation. Only a form with an
-  // extra token before "-p" (e.g. "claude foo -p bar"), or the "--print"/"--prompt" long
-  // flags, matches. This means the pre-bash usage hard-block would not fire for a plain
-  // `claude -p "..."` or `agy -p "..."` call even when that cli is blocked.
-  assert.equal(detectDelegation("claude -p '/audit'"), null);
-  assert.equal(detectDelegation("agy -p 'hi'"), null);
+  assert.deepEqual(detectDelegation("claude -p '/audit'"), { cli: "claude", model: null });
+  assert.deepEqual(detectDelegation("agy -p 'hi'"), { cli: "agy", model: null });
   assert.deepEqual(detectDelegation("claude foo -p '/audit'"), { cli: "claude", model: null });
   assert.deepEqual(detectDelegation("agy foo -p 'hi'"), { cli: "agy", model: null });
+  assert.deepEqual(detectDelegation("cd x && claude -p 'hi' --model claude-opus-5"), { cli: "claude", model: "claude-opus-5" });
+  assert.equal(detectDelegation("claude-foo -p x"), null);
 
   assert.deepEqual(detectDelegation("claude --print '/audit'"), { cli: "claude", model: null });
   assert.deepEqual(detectDelegation("codex exec -m gpt-5.5 'do the thing'"), { cli: "codex", model: "gpt-5.5" });
