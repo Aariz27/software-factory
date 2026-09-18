@@ -94,8 +94,9 @@ function sha256(buf) {
 }
 
 function which(cmd) {
+  const finder = process.platform === "win32" ? "where" : "which";
   try {
-    execFileSync("which", [cmd], { stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync(finder, [cmd], { stdio: ["ignore", "pipe", "ignore"] });
     return true;
   } catch {
     return false;
@@ -152,6 +153,13 @@ function main() {
   }
 
   const manifestPath = join(target, "blueprint", ".state", "manifest.json");
+  // installedAt is set once, on the first install, and preserved across
+  // re-runs; updatedAt tracks the most recent one.
+  let installedAt = new Date().toISOString();
+  try {
+    const previous = JSON.parse(readFileSync(manifestPath, "utf8"));
+    if (previous?.installedAt) installedAt = previous.installedAt;
+  } catch {}
   const manifestBody = JSON.stringify(
     {
       schemaVersion: 1,
@@ -159,7 +167,8 @@ function main() {
       version: pkg.version,
       blueprintVersion: BLUEPRINT_VERSION,
       adapters: ["claude", "codex"],
-      installedAt: new Date().toISOString(),
+      installedAt,
+      updatedAt: new Date().toISOString(),
       managedFiles: Object.fromEntries(Object.entries(manifest).sort()),
     },
     null,

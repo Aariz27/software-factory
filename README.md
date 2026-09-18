@@ -35,7 +35,7 @@ The four diagram commands take any free-text argument — a file, a function, a 
 
 ## Install
 
-Requires Node.js 22+. Run inside an app that is already scaffolded and is a git repository.
+Requires Node.js 22.13+. Run inside an app that is already scaffolded and is a git repository.
 
 ```bash
 npx create-software-factory            # into the current directory
