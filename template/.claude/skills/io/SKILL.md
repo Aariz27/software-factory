@@ -1,6 +1,6 @@
 ---
 name: io
-description: Draws a self-contained HTML diagram of what a piece of code actually takes in and gives back, then opens it in the browser. Trigger on the slash command /io <argument> where argument is a file path, a file section, a function name, a feature, an endpoint, or a CLI command. Also trigger whenever the user asks what a function/endpoint/agent/LLM call takes and returns, what the inputs and outputs are, "what does this expect", the shape of a request/response, a signature explained with real example values, or what a tool call receives and produces — even if they never say "io" or "diagram".
+description: Draws an HTML diagram of what a piece of code takes in and gives back, then opens it. Trigger on `/io <argument>` (file, section, function, feature, endpoint, or CLI command), or when the user asks what a function/endpoint/LLM call takes and returns, "what does this expect", or a signature with real example values — even without saying "io".
 disable-model-invocation: true
 ---
 
@@ -79,11 +79,13 @@ box.
    called in the code.
 4. Every row and every box in it follows the same rules — do not simplify or skip the style
    contract for rows after the first.
-5. Save the finished file to `prototypes/diagrams/io-<slug>.html` in the project root
-   (`<slug>` = a short kebab-case version of the argument), creating the `prototypes/diagrams`
-   folder if it does not exist.
-6. Open it: `open prototypes/diagrams/io-<slug>.html` (macOS). Do nothing else with the
-   browser — no further automation beyond this one `open` call.
+5. Save the finished file to `prototypes/diagrams/io-<slug>.html` in the project root — the
+   nearest ancestor directory containing `.git` or `package.json` (otherwise the current
+   working directory; `<slug>` = a short kebab-case version of the argument), creating the
+   `prototypes/diagrams` folder if it does not exist.
+6. Open it with the command for the OS the shell reports: `open <path>` on macOS,
+   `xdg-open <path>` on Linux, `start "" <path>` on Windows. Do nothing else with the
+   browser — no further automation beyond this one call.
 
 ## Style contract
 

@@ -71,7 +71,7 @@ here before touching it.
   (parsers, formatters, validators, server actions - not components or
   integration/render routes), so each logic-bearing step ships its test. If no
   runner is configured, say so and rely on screenshot plus build evidence. See the
-  Testing gate in `coding-standards.md`.
+  Testing section in `coding-standards.md`.
 
 ## Notes for the AI
 

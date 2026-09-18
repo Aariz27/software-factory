@@ -1,6 +1,6 @@
 ---
 name: error-flow
-description: Renders a single self-contained HTML diagram of every place the happy path in a piece of code can fail, then opens it in the browser. Trigger on the slash command /error-flow <file, function, feature, route, or description>. Also trigger whenever the user asks what can go wrong, where something can fail, which errors are handled, what edge cases exist, "what happens if the API is down", "what's not handled here", or asks for an exception-handling / failure-mode review, even if they never say "error flow" or use the slash command.
+description: Renders an HTML diagram of every place the happy path in a piece of code can fail, then opens it. Trigger on `/error-flow <file, function, feature, route, or description>`, or when the user asks what can go wrong, which errors are handled, what edge cases exist, or wants a failure-mode review — even without saying "error flow".
 disable-model-invocation: true
 ---
 
@@ -76,11 +76,13 @@ before touching the template — it is what fills `<!-- BRANCHES -->`.
    Follow the placeholder comment in the template for the exact markup
    shape and coordinate math — do not redesign the SVG structure.
 3. Save the filled HTML to `prototypes/diagrams/error-flow-<slug>.html` in
-   the project root (the directory containing the code you read), creating
+   the project root — the nearest ancestor directory containing `.git` or
+   `package.json` (otherwise the current working directory), creating
    `prototypes/diagrams/` if it doesn't exist. `<slug>` is the argument,
    lowercased, non-alphanumerics turned into `-`.
-4. Open it: `open <path>` (macOS). Do nothing else with the browser —
-   no automation, no screenshot loop, just the one `open` call.
+4. Open it with the command for the OS the shell reports: `open <path>` on macOS,
+   `xdg-open <path>` on Linux, `start "" <path>` on Windows. Do nothing else with the
+   browser — no automation, no screenshot loop, just the one call.
 
 ## Style contract
 
@@ -89,17 +91,21 @@ Verify the rendered page against this before considering the diagram done:
 - Background `#0d0f12`, monospace font stack (`"JetBrains Mono", "IBM Plex
   Mono", ui-monospace, Menlo, monospace`) everywhere.
 - Happy path = one horizontal 2px line, `#e0b44a`, full width. Caption
-  "the happy path" in `#9ca3af` 14px just above its left end.
+  "the happy path" in grey `#6b7280` 14px just above its left end.
 - Each failure = a 2px `#e5484d` zigzag `<polyline>` of 3 segments leaving
-  the line at a slight angle, ~80–110px long. Branches alternate
-  above/below the line along its length so labels never collide.
+  the line at a slight angle, ~80–110px long, ending in a small open
+  arrowhead at its outer end. Branches alternate above/below the line
+  along its length so labels never collide.
 - Failure value: `#e5484d`, 20px monospace, at the branch's outer end.
-- Caption: `#9ca3af`, 13px, directly below the value.
+- Caption: grey `#6b7280`, 13px, directly below the value.
 - Unhandled branches use `#8b3a3e` instead of `#e5484d` for both the
-  zigzag line and the value text (caption stays `#9ca3af`, and still says
-  the plain-words failure — the word "unhandled" is the point, add it as
-  the caption text or immediately after it).
-- No boxes, no arrowheads, no shadows, no gradients, no icons anywhere.
+  zigzag line, its arrowhead, and the value text (caption stays
+  `#6b7280`, and still says the plain-words failure — the word
+  "unhandled" is the point, add it as the caption text or immediately
+  after it).
+- No boxes, no shadows, no gradients, no icons anywhere — the only line
+  decoration is each branch's arrowhead.
+- Fits phone width with no horizontal scroll (`viewBox` + `width="100%"`).
 - These rules apply to every branch in the diagram, not just the first
   one — check the last branch as carefully as the first before finishing.
 

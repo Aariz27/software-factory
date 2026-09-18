@@ -82,6 +82,15 @@ function runState() {
   return { ...j, ageSeconds: Number.isFinite(updated) ? Math.round((Date.now() - updated) / 1000) : null };
 }
 
+// Parses the `### F-n [P0] <status>` findings-ledger headings the same way
+// gates.mjs's review gate does, and counts only the ones still open.
+function countOpenFindings(findings) {
+  const counts = { P0: 0, P1: 0 };
+  for (const m of findings.matchAll(/^###\s+(F-\d+)\s+\[(P[01])\]\s+(open|fixed)\b.*$/gim))
+    if (/^open$/i.test(m[3])) counts[m[2]]++;
+  return counts;
+}
+
 function pipeline() {
   const bp = readText(join(REPO, "blueprint", "build-plan.md")) || "";
   const items = [];
@@ -94,11 +103,11 @@ function pipeline() {
   const featureTitle = (cf.match(/^#\s+(?!Current Feature)(.+)$/m) || [])[1] || null;
   const inProgress = !/_Nothing in progress/.test(cf) && cf.trim().length > 0;
   const findings = readText(join(REPO, "blueprint", "context", "findings.md")) || "";
-  const count = (sev) => (findings.match(new RegExp(`\\b${sev}\\b[^\\n]*\\b(open|fixed)\\b`, "gi")) || []).length;
+  const openCounts = countOpenFindings(findings);
   return {
     buildPlan: { total: items.length, done: items.filter((i) => i.done).length, items },
     currentFeature: { inProgress, title: featureTitle, status: statusLine },
-    findings: { p0: count("P0"), p1: count("P1") },
+    findings: { p0: openCounts.P0, p1: openCounts.P1 },
   };
 }
 
@@ -194,7 +203,13 @@ function state() {
 
 // ── http ─────────────────────────────────────────────────────────────────────
 
-const INDEX = readFileSync(join(here, "index.html"));
+let INDEX;
+try {
+  INDEX = readFileSync(join(here, "index.html"));
+} catch (e) {
+  console.error(`[a1-harness] cannot read ${join(here, "index.html")}: ${e.message}`);
+  process.exit(1);
+}
 const server = createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/api/state") {

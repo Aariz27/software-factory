@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Software Factory: AI Blueprint's /command workflow plus model routing, usage-window tracking, deterministic gates, diagram commands and a read-only dashboard. Installs into an existing project.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aariz27/software-factory"
+  },
+  "author": "Aariz27",
   "bin": {
     "create-software-factory": "bin/create-software-factory.js"
   },
@@ -14,7 +19,7 @@
     "THIRD_PARTY_NOTICES.md"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "scripts": {
     "test": "node --test"

@@ -4,6 +4,9 @@
 //
 //   node .harness/gates.mjs artifacts <file>...   declared artifacts exist and are not empty
 //   node .harness/gates.mjs claimed <file>...     every file the builder claims it changed exists
+//
+// <file> arguments are always repo-root-relative, the same as every path this
+// script reads or prints (current-feature.md, findings.md, changedFiles()).
 //   node .harness/gates.mjs review [receipt]      review verdict agrees with its own findings
 //   node .harness/gates.mjs test [--tail N]       the AGENTS.md `Verify:` command exits 0
 //   node .harness/gates.mjs commit-ready          refuse a commit when there is nothing to commit
@@ -12,9 +15,14 @@
 //
 // Output is stdout only: one PASS/FAIL line per gate plus detail lines.
 // Exit 0 = pass, 1 = fail, 2 = bad usage. Nothing is written to disk.
+//
+// "Files in scope" patterns (one per `-` bullet, path in backticks): an exact
+// path, a path ending in `/` meaning "everything under that directory", or a
+// glob per node:path's matchesGlob (e.g. `**` allows every changed path,
+// `src/**` allows everything under src) — no glob syntax is special-cased.
 
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { join, matchesGlob } from "node:path";
+import { join, matchesGlob, resolve, sep } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 
 // path.matchesGlob is marked experimental on Node 22/23; the warning is noise here.
@@ -26,8 +34,11 @@ process.emitWarning = (warning, ...rest) => {
 // A reader that stops early (`| head`) is not a gate failure.
 process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(process.exitCode ?? 0); throw e; });
 
+// Always run from ROOT, regardless of the caller's actual cwd, so every path
+// git prints (ls-files, diff --name-only, ...) is repo-root-relative like the
+// paths in current-feature.md, findings.md and everywhere else in this file.
 const git = (...args) =>
-  execFileSync("git", args, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+  execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
 
 let ROOT;
 try {
@@ -91,7 +102,13 @@ const gates = {
 
   claimed(files) {
     if (files.length === 0) return usage("claimed needs at least one file");
-    const problems = files.filter((f) => !existsSync(join(ROOT, f))).map((f) => `${f} does not exist on disk`);
+    const problems = [];
+    for (const f of files) {
+      const p = resolve(ROOT, f);
+      if (p !== ROOT && !p.startsWith(ROOT + sep)) { problems.push(`${f} resolves outside the repo`); continue; }
+      if (!existsSync(p)) problems.push(`${f} does not exist on disk`);
+      else if (!statSync(p).isFile()) problems.push(`${f} is not a file`);
+    }
     return result("claimed", problems, `${files.length} claimed file(s) exist`);
   },
 
@@ -111,7 +128,7 @@ const gates = {
       for (const s of ["## Commands", "## Evidence", "## Findings", "## Remaining risk"])
         if (bullets(section(text, s)).length === 0) problems.push(`section ${s} has no entry`);
       const ledger = read("blueprint/context/findings.md") ?? "";
-      for (const m of ledger.matchAll(/^###\s+(F-\d+)\s+\[(P[01])\]\s+(open|fixed)\b.*$/gm))
+      for (const m of ledger.matchAll(/^###\s+(F-\d+)\s+\[(P[01])\]\s+(open|fixed)\b.*$/gim))
         problems.push(`verdict is passed but ${m[1]} [${m[2]}] is still ${m[3]} in findings.md`);
     } else if (verdict === "changes-requested") {
       if (findings.length === 0 && check !== "failed")
@@ -128,7 +145,13 @@ const gates = {
     if (!Number.isInteger(tail) || tail < 0) return usage("--tail needs a whole number");
 
     const commands = section(read("AGENTS.md") ?? "", "## Commands");
-    const cmd = (commands ?? "").match(/^\s*(?:-\s*)?Verify:\s*`?([^`\n]+?)`?\s*$/m)?.[1];
+    const line = (commands ?? "").match(/^\s*(?:-\s*)?Verify:\s*(.+?)\s*$/m)?.[1];
+    // The command itself may contain a backtick (e.g. a shell substitution), so
+    // take everything between the first and last backtick on the line, not the
+    // first pair — a naive non-greedy match truncates at that inner backtick.
+    const first = line?.indexOf("`") ?? -1;
+    const last = line?.lastIndexOf("`") ?? -1;
+    const cmd = first !== -1 && last > first ? line.slice(first + 1, last) : line;
     if (!cmd) return result("test", ["AGENTS.md Commands has no `Verify:` line — run /ci to define one"]);
 
     console.log(`running: ${cmd}`);
@@ -149,7 +172,9 @@ const gates = {
 
   diff([base = "HEAD"]) {
     process.stdout.write(git("diff", base));
-    const untracked = git("ls-files", "--others", "--exclude-standard").split("\n").filter(Boolean);
+    // Reuse changedFiles() for the untracked set instead of re-listing them here.
+    const tracked = new Set(git("diff", "--name-only", base).split("\n").filter(Boolean));
+    const untracked = changedFiles(base).filter((f) => !tracked.has(f));
     for (const f of untracked) {
       const d = spawnSync("git", ["diff", "--no-index", "--", "/dev/null", f], { cwd: ROOT, encoding: "utf8" });
       process.stdout.write(d.stdout);
@@ -165,10 +190,19 @@ const gates = {
     const patterns = bullets(listed).map((b) => b.match(/^`([^`]+)`/)?.[1]).filter(Boolean);
     if (patterns.length === 0) return result("scope", ["\"Files in scope\" lists no paths"]);
 
+    // A pattern ending in "/" means "everything under that directory"; otherwise
+    // an exact path or a matchesGlob pattern (see header comment for `**`).
+    const matchesPattern = (f, p) => (p.endsWith("/") ? f.startsWith(p) : f === p || matchesGlob(f, p));
+
+    const changed = changedFiles(base);
     // blueprint/ is the workflow's own memory (the spec's ticked steps, findings, review); always allowed.
-    const outside = changedFiles(base).filter(
-      (f) => !f.startsWith("blueprint/") && !patterns.some((p) => f === p || matchesGlob(f, p)),
+    const outside = changed.filter(
+      (f) => !f.startsWith("blueprint/") && !patterns.some((p) => matchesPattern(f, p)),
     );
+
+    for (const p of patterns.filter((p) => !changed.some((f) => matchesPattern(f, p))))
+      console.log(`  (note) "${p}" in "Files in scope" matched 0 changed files`);
+
     return result("scope", outside.map((f) => `${f} is changed but not listed in "Files in scope"`),
       `every changed file matches the ${patterns.length} listed path(s)`);
   },
