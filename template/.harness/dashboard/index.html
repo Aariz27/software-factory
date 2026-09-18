@@ -91,7 +91,7 @@
   .node-rect.headless{ stroke:var(--amber); stroke-width:2; }
   @media (prefers-reduced-motion: no-preference){ .node-rect.headless{ animation: nodePulse 1.8s ease-in-out infinite; } }
   @keyframes nodePulse{ 0%,100%{ stroke-opacity:1; filter:drop-shadow(0 0 0 rgba(224,180,74,0)); } 50%{ stroke-opacity:.55; filter:drop-shadow(0 0 6px rgba(224,180,74,.55)); } }
-  .edge{ stroke:var(--amber); stroke-width:1.5; fill:none; }
+  .edge{ stroke:var(--amber); stroke-width:1.5; fill:none; stroke-linejoin:round; }
   .node-label{ fill:var(--text); font-size:12px; font-family:inherit; font-weight:700; }
   .node-sub{ fill:var(--dim); font-size:10px; font-family:inherit; }
   .node-dot{ fill:var(--green); } .node-tri{ fill:var(--amber); }
@@ -290,7 +290,10 @@ function renderGraph(agents) {
   const place = (a, depth, parent) => {
     const n = { a, x: X0 + depth * GX, y: Y0 + row * GY };
     nodes.push(n);
-    if (parent) edges.push(`M ${parent.x + W} ${parent.y + H / 2} C ${parent.x + W + 40} ${parent.y + H / 2}, ${n.x - 40} ${n.y + H / 2}, ${n.x} ${n.y + H / 2}`);
+    // Orthogonal elbow with an arrowhead: straight right for the first child
+    // (horizontal growth = one spawn deeper), right-then-down for later
+    // siblings (vertical growth = more children of the same parent).
+    if (parent) edges.push(`M ${parent.x + W} ${parent.y + H / 2} H ${parent.x + W + 24} V ${n.y + H / 2} H ${n.x - 6}`);
     const ch = kids(a);
     if (!ch.length) row++;
     ch.forEach(c => place(c, depth + 1, n));
@@ -307,7 +310,9 @@ function renderGraph(agents) {
     <text class="node-label" x="${x + 32}" y="${y + 23}">${esc(a.cli)}</text>
     <text class="node-sub" x="${x + 18}" y="${y + 40}">pid ${a.pid} · ${a.headless ? "headless" : "interactive"}</text>
     <text class="node-sub" x="${x + 18}" y="${y + 52}">${esc(a.model || "")}</text>`).join("");
-  $("graph").innerHTML = `<svg class="graph-svg" viewBox="0 0 ${Math.max(vw, X0 * 2 + COLS * CW - 40)} ${vh}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agent process tree">${edges.map(d => `<path class="edge" d="${d}"/>`).join("")}${svgNodes}</svg>
+  $("graph").innerHTML = `<svg class="graph-svg" viewBox="0 0 ${Math.max(vw, X0 * 2 + COLS * CW - 40)} ${vh}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agent process tree">
+    <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="#e0b44a"/></marker></defs>
+    ${edges.map(d => `<path class="edge" d="${d}" marker-end="url(#arrow)"/>`).join("")}${svgNodes}</svg>
     <div class="args-list">${agents.map(a => `<div><b>${esc(a.cli)}</b> <span>pid ${a.pid}</span> ${esc(a.args)}</div>`).join("")}</div>`;
 }
 
