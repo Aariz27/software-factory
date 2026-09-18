@@ -19,7 +19,7 @@ This package is **[AI Blueprint](https://github.com/aiblueprinthq/ai-blueprint) 
 | `/data-flow <arg>` — client/server data-movement diagram (HTML) | done |
 | `/error-flow <arg>` — every failure point on the happy path (HTML) | done |
 | `/io <arg>` — real inputs and outputs of a unit (HTML) | done |
-| Onboarding: assign a model to each `/command` from model cards | planned |
+| Onboarding: `npx create-software-factory onboard` / `/models` — you choose which `cli:model` runs each `/command` (+ backup, block threshold) → `blueprint/harness.json` | done |
 | Per-command model routing to `claude -p` / `codex exec` / `agy -p` | planned |
 | Usage-window tracking (5-hour / weekly %) with hard block + fallback | planned |
 | Per-model prompt tuning | planned |
@@ -44,6 +44,7 @@ npx create-software-factory --dry-run  # show what would be written
 npx create-software-factory --force    # overwrite files that already exist
 npx create-software-factory --no-dashboard   # install without starting the dashboard
 npx create-software-factory dashboard  # (re)start the dashboard for an installed project, http://localhost:4747
+npx create-software-factory onboard    # choose which model runs each /command (writes blueprint/harness.json), then opens the dashboard
 ```
 
 The dashboard is read-only and model-free: every number comes from files on disk (`blueprint/`, `blueprint/.state/run.json`, `usage.json`, `trace.db`), `git`, and the process table, re-read on every 2-second poll. If the server stops, the header turns STALE. The trace schema is `.harness/schema.sql`; the usage file shape is `.harness/usage.schema.json`. Needs Node 22.13+ for `node:sqlite` (trace panels say so when it is missing).

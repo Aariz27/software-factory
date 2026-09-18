@@ -5,7 +5,7 @@ npm package that installs the Software Factory workflow into a project. `templat
 ## Layout
 - `template/` — AI Blueprint 1.9.0 files (unchanged) + our skills. `.claude/skills/` and `.agents/skills/` must stay byte-identical except Blueprint's `disable-model-invocation` frontmatter line.
 - `bin/` — installer. Plain Node ESM, no dependencies. Keep it that way.
-- `template/.harness/` — our runtime pieces installed into projects: `dashboard/` (server.mjs + index.html, read-only, no deps, polls every 2 s), `schema.sql` (trace.db contract), `usage.schema.json` (usage.json contract). Hooks and the `sf run` wrapper will land here too.
+- `template/.harness/` — our runtime pieces installed into projects: `dashboard/` (server.mjs + index.html, read-only, no deps, polls every 2 s), `schema.sql` (trace.db contract), `usage.schema.json` (usage.json contract). `onboard.mjs` (model routing → `blueprint/harness.json`; `--list` / `--show` / flags, or interactive). Hooks and the `sf run` wrapper will land here too.
 - `plan.md`, `features.md` — design docs, root only.
 
 ## Rules
@@ -15,6 +15,8 @@ npm package that installs the Software Factory workflow into a project. `templat
 - No AI attribution lines in commits.
 
 ## Lab notes
+- Routing config lives in `blueprint/harness.json`, never in `blueprint/config.json`: Blueprint's `/doctor` rejects unknown keys there and blocks mutating commands.
+- `codex login status` prints to stderr; `agy models` takes ~1.5 s (cache it); test interactive scripts with `expect`, not `printf | script` (EOF races the prompts).
 - Trace/usage data can be seeded for dashboard testing: `run-state.mjs start …` for run.json, the `example` in usage.schema.json for usage.json, and `schema.sql` + a few INSERTs via node:sqlite for trace.db.
 - `git branch --format` does not expand `%x1f` (only `git log` does); use a literal separator.
 - Blueprint's stock `manifest.json` is not shipped; the installer regenerates it with our own schema.

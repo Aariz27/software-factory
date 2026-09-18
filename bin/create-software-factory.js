@@ -12,7 +12,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, "..", "package.json"), "utf8"));
@@ -47,6 +47,7 @@ function parseArgs(argv) {
     else if (a === "--port") opts.port = Number(argv[++i]);
     else if (a === "--help" || a === "-h") opts.help = true;
     else if (a === "dashboard" && i === 0) opts.command = "dashboard";
+    else if (a === "onboard" && i === 0) opts.command = "onboard";
     else if (a.startsWith("-")) throw new Error(`unknown flag: ${a}`);
     else opts.target = resolve(a);
   }
@@ -90,11 +91,21 @@ function main() {
   console.log(BANNER);
   if (opts.help) {
     console.log(`  Usage: npx create-software-factory [target-dir] [--force] [--dry-run] [--no-dashboard] [--port N]
-         npx create-software-factory dashboard [target-dir] [--port N]   start the read-only dashboard for an installed project\n`);
+         npx create-software-factory dashboard [target-dir] [--port N]   start the read-only dashboard for an installed project
+         npx create-software-factory onboard   [target-dir]              choose which model runs each /command, then open the dashboard\n`);
     return;
   }
   if (opts.command === "dashboard") {
     startDashboard(opts.target, opts.port, { detached: false, open: true });
+    return;
+  }
+  if (opts.command === "onboard") {
+    // Interactive model routing, then re-open the dashboard so the choices are visible.
+    const script = join(opts.target, ".harness", "onboard.mjs");
+    if (!existsSync(script)) throw new Error(`harness not installed at ${opts.target}`);
+    const r = spawnSync(process.execPath, [script], { cwd: opts.target, stdio: "inherit" });
+    if (r.status !== 0) process.exit(r.status ?? 1);
+    startDashboard(opts.target, opts.port, { detached: true, open: true });
     return;
   }
 
@@ -154,8 +165,9 @@ function main() {
     1. Open this project in Claude Code or Codex.
     2. Write the five docs by hand in blueprint/: spec.md, data_contract.md, features.md, ux.md, ui.md.
     3. Run /plan  → build-plan.md + project-plan.md from those docs.
-    4. Run /onboard, then /overview, then /feature → /implement → /check → /audit → /complete.
-    5. Diagrams: /control-flow, /data-flow, /error-flow, /io <file | function | feature>.
+    4. Run \`npx create-software-factory onboard\` (or /models) to pick which model runs each /command.
+    5. Run /onboard, then /overview, then /feature → /implement → /check → /audit → /complete.
+    6. Diagrams: /control-flow, /data-flow, /error-flow, /io <file | function | feature>.
 `);
 
   if (opts.dashboard && !opts.dryRun) {

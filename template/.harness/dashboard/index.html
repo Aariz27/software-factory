@@ -165,6 +165,10 @@
       <div class="repo-line" style="margin-top:10px;" id="r-agents">agents running: …</div>
     </div>
     <div class="rail-section">
+      <div class="rail-label">Model routing</div>
+      <div id="r-routing"></div>
+    </div>
+    <div class="rail-section">
       <div class="rail-label">Subscription windows</div>
       <div id="r-usage"></div>
     </div>
@@ -214,6 +218,12 @@ function renderRail(st) {
   $("r-clis").innerHTML = st.clis.map(c => `<span class="cli-chip ${c.found ? "found" : ""}">${esc(c.cmd)}</span>`).join("");
   const headless = st.agents.filter(a => a.headless).length;
   $("r-agents").innerHTML = `agents running: <b>${headless}</b> headless · <b>${st.agents.length - headless}</b> interactive`;
+
+  const rt = st.routing;
+  const fmtc = (c) => c ? `${esc(c.cli)}:${esc(c.model)}` : "—";
+  $("r-routing").innerHTML = !rt ? empty("no harness.json yet — run npx create-software-factory onboard") : rt._invalid ? `<span style="color:var(--red)">harness.json is malformed</span>` :
+    `<div class="repo-line"><b>default</b> ${fmtc(rt.default)}</div><div class="repo-line"><b>backup</b> ${fmtc(rt.backup)}</div><div class="repo-line"><b>block at</b> ${esc(rt.usageBlockPercent)}%</div>` +
+    Object.entries(rt.commands || {}).map(([k, v]) => `<div class="repo-line">/${esc(k)} → <span style="color:var(--amber)">${fmtc(v)}</span>${v.backup ? ` <span style="color:var(--dim)">· backup ${fmtc(v.backup)}</span>` : ""}</div>`).join("");
 
   const u = st.usage;
   if (!u) $("r-usage").innerHTML = empty("no usage.json yet — the usage poller is not running");

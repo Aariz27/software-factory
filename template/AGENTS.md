@@ -311,3 +311,19 @@ Browser testing is also opt-in. Run `/tests browser` or `$tests browser` to add
 or normalize a browser harness and document its exact command as `Browser
 tests`. Check and Continuous Mode can then reuse it without installing tooling
 mid-feature.
+
+## A1 Harness
+
+This project also carries the A1 Harness, added on top of the Blueprint:
+
+- `blueprint/harness.json` - user-owned routing table: which `cli:model` runs
+  each `/command`, the backup model, and the usage-block threshold. Change it
+  with `/models` (or `node .harness/onboard.mjs`). Never add these keys to
+  `blueprint/config.json`.
+- `.harness/` - installed machinery: `dashboard/` (read-only localhost view,
+  `npx create-software-factory dashboard`), `gates.mjs` (deterministic
+  checks the skills call), `schema.sql` (trace database) and
+  `usage.schema.json` (usage file). Treat it like `.claude/skills/`: managed
+  files, not product code.
+- Extra commands: `/plan`, `/models`, `/control-flow`, `/data-flow`,
+  `/error-flow`, `/io`, and `/prototype <doc>`.

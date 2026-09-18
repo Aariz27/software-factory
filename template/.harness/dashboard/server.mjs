@@ -182,12 +182,13 @@ function hardware() {
 }
 
 function config() { return readJson(join(REPO, "blueprint", "config.json")); }
+function routing() { return readJson(join(REPO, "blueprint", "harness.json")); }
 
 function state() {
   return {
     server: { startedAt: STARTED_AT, now: new Date().toISOString(), pid: process.pid, node: process.version },
     repo: repoInfo(), run: runState(), pipeline: pipeline(), git: gitInfo(),
-    clis: clis(), agents: agents(), usage: usage(), trace: trace(), hardware: hardware(), config: config(),
+    clis: clis(), agents: agents(), usage: usage(), trace: trace(), hardware: hardware(), config: config(), routing: routing(),
   };
 }
 
