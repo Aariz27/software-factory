@@ -1,6 +1,7 @@
 ---
 name: io
 description: Draws a self-contained HTML diagram of what a piece of code actually takes in and gives back, then opens it in the browser. Trigger on the slash command /io <argument> where argument is a file path, a file section, a function name, a feature, an endpoint, or a CLI command. Also trigger whenever the user asks what a function/endpoint/agent/LLM call takes and returns, what the inputs and outputs are, "what does this expect", the shape of a request/response, a signature explained with real example values, or what a tool call receives and produces — even if they never say "io" or "diagram".
+disable-model-invocation: true
 ---
 
 # io

@@ -1,6 +1,7 @@
 ---
 name: data-flow
 description: Renders a single self-contained HTML diagram showing where data goes for a given file, feature, route, or description in this project — who sends it, over what transport, to which component, what comes back, and where it is stored — then opens it in the browser. Trigger on the /data-flow slash command, and also whenever the user asks where data goes, what the client sends to the server, how a request travels, what gets stored where, request/response shape, or asks to "trace this payload" — even if they never say "data flow".
+disable-model-invocation: true
 ---
 
 # Data Flow Diagram

@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: Plan and create throwaway static HTML and CSS mockups with shared design tokens before feature implementation. Use for /prototype, screen mockups, layout exploration, themes, or deciding a project's look and feel.
+description: Plan and create throwaway static HTML and CSS mockups with shared design tokens before feature implementation, or with an argument (spec, data_contract, features, ux, ui) render that blueprint doc's decisions as an HTML diagram. Use for /prototype, /prototype <doc>, screen mockups, layout exploration, themes, or deciding a project's look and feel.
 ---
 
 # prototype - lock the look before you build
@@ -10,6 +10,44 @@ description: Plan and create throwaway static HTML and CSS mockups with shared d
 **First action:** Before project inspection, preflight, or any other tool call,
 publish `running` to `blueprint/.state/run.json` using the dashboard activity
 contract in `AGENTS.md`.
+
+## With an argument: `/prototype <doc>`
+
+If `$ARGUMENTS` is one of `spec`, `data_contract`, `features`, `ux`, `ui`,
+skip everything below "No argument" and do this instead. Any other argument →
+stop and list the five valid names.
+
+1. Read `blueprint/<doc>.md`. If it is missing, or still only the skeleton
+   headings with no answers under them, stop and say which sections are empty.
+   Never fill a gap with a guess — an invented decision looks authoritative
+   but lies.
+2. List every decision the doc actually states, with the heading it sits
+   under. This list is the only input to the page.
+3. Draw one self-contained HTML page with an inline `<svg>`, laid out by doc:
+   - `spec` — a tree: the doc as root, the 11 numbered sections as branches,
+     each stated decision as a leaf. A section with no answer is a red leaf
+     reading `not decided`.
+   - `data_contract` — one box per "Pieces of data" entry showing where it
+     lives; edges to where it goes, labelled with the trigger and transport.
+     The pre-flight checklist sits underneath as a row of yes/no cells, a
+     `no` in red.
+   - `features` — three columns: `MUST HAVE`, `LATER`, `NOT BUILDING`, one
+     box per feature.
+   - `ux` — one left-to-right flow chart per route, one box per step. Each
+     "What must never happen" item is a red box.
+   - `ui` — a mood board: the look-and-feel words as tags, each reference
+     image as an `<img>` (relative path from `prototypes/diagrams/`), each
+     component or layout rule as a box.
+4. Style: same as `/data-flow` — background `#0d0f12`, font
+   `"JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace`, boxes
+   `rx="6"` fill `#15181d` border `#262a31` text `#e6e6e6`, headings `#6b7280`,
+   edges 2px `#e0b44a` with right-angle elbows only, gaps and failures
+   `#e5484d`. No shadows, gradients, icons, or external scripts/stylesheets.
+   Header shows the doc name and `blueprint/<doc>.md`.
+5. Save to `prototypes/diagrams/prototype-<doc>.html` (create the folder if
+   needed) and open it with `open` (macOS). Then stop.
+
+## No argument
 
 Where this sits in the workflow:
 

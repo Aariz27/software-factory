@@ -1,6 +1,7 @@
 ---
 name: error-flow
 description: Renders a single self-contained HTML diagram of every place the happy path in a piece of code can fail, then opens it in the browser. Trigger on the slash command /error-flow <file, function, feature, route, or description>. Also trigger whenever the user asks what can go wrong, where something can fail, which errors are handled, what edge cases exist, "what happens if the API is down", "what's not handled here", or asks for an exception-handling / failure-mode review, even if they never say "error flow" or use the slash command.
+disable-model-invocation: true
 ---
 
 # error-flow

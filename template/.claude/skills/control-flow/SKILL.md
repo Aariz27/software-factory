@@ -1,6 +1,7 @@
 ---
 name: control-flow
 description: Renders the real control flow of a piece of code (a file, a function, a feature, a route) as a single dark-themed HTML diagram and opens it in the browser. Trigger on the `/control-flow` slash command, and also whenever the user asks to see the order of execution, the sequence of steps, the branching logic, "what runs first", "what happens next", "walk me through what this function does", a flowchart, or wants to understand how a piece of code branches and fails — even if they never say "control flow". The argument can be a file path, a description of part of a file, a feature name, or a route.
+disable-model-invocation: true
 ---
 
 # control-flow
