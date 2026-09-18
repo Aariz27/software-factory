@@ -317,13 +317,48 @@ mid-feature.
 This project also carries the A1 Harness, added on top of the Blueprint:
 
 - `blueprint/harness.json` - user-owned routing table: which `cli:model` runs
-  each `/command`, the backup model, and the usage-block threshold. Change it
-  with `/models` (or `node .harness/onboard.mjs`). Never add these keys to
-  `blueprint/config.json`.
-- `.harness/` - installed machinery: `dashboard/` (read-only localhost view,
-  `npx create-software-factory dashboard`), `gates.mjs` (deterministic
-  checks the skills call), `schema.sql` (trace database) and
-  `usage.schema.json` (usage file). Treat it like `.claude/skills/`: managed
+  each `/command`, the backup model, the usage-block threshold, and an optional
+  `permissions` (`read-only` | `write`) per command. Change it with `/models`
+  (or `node .harness/onboard.mjs`). Never add these keys to `blueprint/config.json`.
+- `.harness/` - installed machinery. Treat it like `.claude/skills/`: managed
   files, not product code.
-- Extra commands: `/plan`, `/models`, `/control-flow`, `/data-flow`,
-  `/error-flow`, `/io`, and `/prototype <doc>`.
+  - `sf.mjs` - `node .harness/sf.mjs run <command> …` is the only way a step is
+    handed to another model. It picks the model from `harness.json`, swaps to the
+    backup when `usage.json` blocks it, maps the command's write class to the
+    CLI's permission flags (`claude -p --allowedTools…`, `codex exec -s …`,
+    `agy -p --mode …`), takes `blueprint/.state/sf.lock` for a write-capable
+    command, launches the CLI headless, logs every tool call and the token
+    totals to `blueprint/.state/trace.db`, and checks `git status` afterwards
+    (a read-only run that changed files, or a write run outside "Files in
+    scope", is recorded as a failed gate). `--skill "<args>"` runs the
+    project's own `/<command>` skill on that model; `--independent` (audit)
+    refuses the model that built the current work; `--worktree` runs a write
+    command in `.worktrees/<branch>`. `node .harness/sf.mjs usage` is the
+    usage-window poller (`--once` for a single poll).
+  - `hooks.mjs` + `.claude/settings.json` - Claude Code hooks: a direct
+    `claude -p` / `codex exec` / `agy -p` call is denied while that model's
+    usage window is blocked; an `Edit`/`Write` outside "## Files in scope" of
+    `blueprint/context/current-feature.md` is denied; `/implement` (and
+    `/fix`, `/autopilot`, `/continuous`) gets at most 3 test→fix and 2
+    review→revise rounds (counter in `run.json` `loops`); every prompt, tool
+    call, subagent and turn end is written to `trace.db`; a tracked `/command`
+    starts `run.json` and the turn end closes it. When `harness.json` assigns a
+    `/command` to another `cli:model`, the prompt hook tells the session to run
+    it through `sf.mjs --skill` instead of following the skill itself. Hooks
+    skip headless children (`claude -p`), which have their own trace rows.
+  - `usage-poller.mjs` - every 60 s: `claude -p "/usage"`, `agy -p "/usage"`,
+    `codex app-server` rate limits → `blueprint/.state/usage.json`
+    (`.harness/usage.schema.json`). A group past `usageBlockPercent` is `blocked`.
+  - `gates.mjs` - deterministic checks the skills call (`artifacts`, `claimed`,
+    `review`, `test`, `commit-ready`, `diff`, `scope`); results land in
+    `trace.db` through the PostToolUse hook.
+  - `trace.mjs` (the only writer of `trace.db`, `schema.sql`), `onboard.mjs`,
+    `dashboard/` (read-only localhost view, `npx create-software-factory dashboard`).
+- Extra commands, available to every adapter through the same skill trees:
+  - `plan` - read the five hand-written docs (`blueprint/spec.md`,
+    `data_contract.md`, `features.md`, `ux.md`, `ui.md`) and write
+    `build-plan.md` + `project-plan.md`; writes activity state like `discovery`
+  - `models` - choose which `cli:model` runs each `/command` (`blueprint/harness.json`)
+  - `control-flow <arg>` / `data-flow <arg>` / `error-flow <arg>` / `io <arg>` -
+    read the real code and open one HTML diagram from `prototypes/diagrams/`
+  - `prototype <doc>` - render one of the five docs as a diagram
