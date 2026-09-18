@@ -116,7 +116,7 @@ function isGitRepo(dir) {
 function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
-    console.log(`  Usage: npx create-software-factory [target-dir] [--force] [--dry-run] [--no-dashboard] [--port N]
+    console.log(`  Usage: npx create-software-factory [target-dir] [--force] [--dry-run] [--no-dashboard] [--port N] [--help | -h]
          npx create-software-factory dashboard [target-dir] [--port N]   start the read-only dashboard for an installed project
          npx create-software-factory onboard   [target-dir]              choose which model runs each /command, then open the dashboard\n`);
     return;
@@ -147,7 +147,8 @@ function main() {
   const target = opts.target;
   if (!existsSync(target)) throw new Error(`target directory does not exist: ${target}`);
   console.log(`  ${B}Target${X}  ${target}`);
-  console.log(`  ${B}Git${X}     ${isGitRepo(target) ? `${G}repository found${X}` : `${R}not a git repository${X} — run \`git init\` before using /complete`}`);
+  if (!isGitRepo(target) && !opts.force) throw new UsageError(`${target} is not a git repository — run \`git init\` there first (or pass --force to install anyway)`);
+  console.log(`  ${B}Git${X}     ${isGitRepo(target) ? `${G}repository found${X}` : `${Y}not a git repository${X} — installing anyway (--force); run \`git init\` before using /complete`}`);
 
   const files = walk(TEMPLATE_DIR);
   const written = [], skipped = [], manifest = {};

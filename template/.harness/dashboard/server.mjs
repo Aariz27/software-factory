@@ -137,7 +137,8 @@ function agents() {
   let out; try { out = execFileSync("ps", ["-axo", "pid=,ppid=,lstart=,args="], { encoding: "utf8" }); } catch { return []; }
   const rows = [];
   for (const line of out.split("\n")) {
-    const m = line.match(/^\s*(\d+)\s+(\d+)\s+(.{24})\s+(.*)$/);
+    // lstart is "Thu Sep 18 23:45:01 2026" (weekday month day time year); match it by shape, not width.
+    const m = line.match(/^\s*(\d+)\s+(\d+)\s+([A-Z][a-z]{2}\s+[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4})\s+(.*)$/);
     if (!m) continue;
     const [, pid, ppid, lstart, args] = m;
     const bin = (args.split(/\s+/)[0] || "").split("/").pop();

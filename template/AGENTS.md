@@ -212,8 +212,8 @@ Git, and never part of a feature commit.
 Commands with meaningful progress or a durable handoff should write it when the
 state directory exists: `onboard`, `adopt`, `discovery`, `overview`, `feature`,
 `fix`, `rollback`, `implement`, `debug`, `check`, `audit`, `tests`,
-`ci`, `prototype`, `autopilot`, `continuous`, `complete`, and
-`release`. Short orientation commands such as `explore`, `brief`, `status`, and `doctor`
+`ci`, `prototype`, `autopilot`, `continuous`, `complete`, `release`, and
+`plan`. Short orientation commands such as `explore`, `brief`, `status`, and `doctor`
 do not write activity state. The `check guide` mode also never writes activity
 state; select the Check mode before any activity call. Doctor's optional
 approved reset removes malformed activity instead of recording another run.

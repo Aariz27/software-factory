@@ -44,6 +44,7 @@ npx create-software-factory --dry-run  # show what would be written
 npx create-software-factory --force    # overwrite files that already exist
 npx create-software-factory --no-dashboard   # install without starting the dashboard
 npx create-software-factory dashboard  # (re)start the dashboard for an installed project, http://localhost:4747
+npx create-software-factory --port 4800  # any command: dashboard port (default 4747)
 npx create-software-factory onboard    # choose which model runs each /command (writes blueprint/harness.json), then opens the dashboard
 ```
 
