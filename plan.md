@@ -14,7 +14,7 @@ ai-blueprint, plus our own additions on top. The host CLI the user is typing int
 
 ## Features added on top of ai-blueprint
 1. **Our own installer** — one `npx` / shell command that drops ai-blueprint's skills + memory files + our additions into a project, then immediately starts the localhost dashboard (feature 6) and opens it in the browser, before any `/` command has run.
-2. **Onboarding** — detects which CLIs are logged in (`claude`, `codex`, `agy`, `ollama`), reads the model cards (`~/Documents/software-factory/My Version/model-cards/`, 22 cards), assigns one model to each `/` command, writes the choice into `blueprint/config.json`, then starts the localhost dashboard (feature 6) and opens it in the browser so the user sees the factory from the first minute. Done once per project.
+2. **Onboarding** — detects which CLIs are logged in (`claude`, `codex`, `agy`, `ollama`), lists the models each exposes, and asks the user which model (and backup) runs each `/` command, writes the choice into `blueprint/config.json`, then starts the localhost dashboard (feature 6) and opens it in the browser so the user sees the factory from the first minute. Done once per project.
 3. **Per-command model routing** — each `SKILL.md` starts by reading `config.json`; if the assigned model is not the host, the host delegates the step to that CLI headless (`agy -p`, `codex exec`, `claude -p`) via Bash and reads back the result. Example: `/plan` → Opus; `/implement` → Gemini via `agy -p`.
 4. **Usage-window tracking** — a script polls `claude -p "/usage"`, `agy -p "/usage" --output-format json`, and `codex app-server` JSON-RPC `account/rateLimits/read` every 60 seconds with no stored state; a skill reads the result before delegating; a model past the threshold (e.g. 95%) is blocked, the command falls back to its backup model, and the switch is reported. Tokens per command are recorded in SQLite. No dollar-cost column.
 5. **Per-model prompt tuning** — after onboarding assigns a model to a command, a script rewrites that skill's prompt text using the matching guide in `~/.claude/skills/prompting/` (Fable 5, Opus, Sonnet 5, Qwen 2.5 exist; GPT and Gemini guides do not yet). A script decides which guide applies, not an LLM.
@@ -47,7 +47,6 @@ Every project has five documents the user writes by hand before `/plan` runs:
 ## Source material
 - ai-blueprint v1.9.0 stock install: `~/Documents/software-factory/blueprint-test/` (24 commands as `SKILL.md`, memory files in `blueprint/`, `run-state.mjs`).
 - SSSF v1 stock install (inspiration only, no code reused): `~/Documents/software-factory/sssf-test/`.
-- Model cards: `~/Documents/software-factory/My Version/model-cards/`.
 - Research reports (scratchpad): `research-blueprint.md`, `research-sssf-and-plan.md`, `research-web.md`.
 
 ## Conflicts still open
