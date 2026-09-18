@@ -12,24 +12,24 @@ This package is **[AI Blueprint](https://github.com/aiblueprinthq/ai-blueprint) 
 
 ### Added on top of AI Blueprint
 
-| Addition | Status |
-|---|---|
-| `npx create-software-factory` installer with CLI detection; starts the dashboard and opens it in the browser | done |
-| `/control-flow <arg>` — execution-order diagram (HTML) | done |
-| `/data-flow <arg>` — client/server data-movement diagram (HTML) | done |
-| `/error-flow <arg>` — every failure point on the happy path (HTML) | done |
-| `/io <arg>` — real inputs and outputs of a unit (HTML) | done |
-| Onboarding: assign a model to each `/command` from model cards | planned |
-| Per-command model routing to `claude -p` / `codex exec` / `agy -p` | planned |
-| Usage-window tracking (5-hour / weekly %) with hard block + fallback | planned |
-| Per-model prompt tuning | planned |
-| Deterministic gate scripts (artifacts, claimed files, verdict consistency, tests, empty-diff commit) | planned |
-| Per-command write permissions and sandbox flags for child agents | planned |
-| Bounded fix/revise loops in `/implement` | planned |
-| Cross-model `/audit independent` | planned |
-| Five hand-written docs (`blueprint/spec.md`, `data_contract.md`, `features.md`, `ux.md`, `ui.md`) + `/plan` → `build-plan.md` + `project-plan.md` | done |
-| `/prototype <doc>` | planned |
-| Read-only localhost dashboard (`.harness/dashboard/`) — opens right after install; LIVE/STALE strip; now-running, agent tree, sandbox & permissions, blocked models, token spend, subscription windows, feature pipeline, git, gates, files touched, hardware, trace events | done |
+Status per item (done / in progress / pending) lives in `features.md` — the
+single source of truth; this list is not duplicated with per-item status here.
+
+- `npx create-software-factory` installer with CLI detection; starts the dashboard and opens it in the browser
+- `/control-flow <arg>` — execution-order diagram (HTML)
+- `/data-flow <arg>` — client/server data-movement diagram (HTML)
+- `/error-flow <arg>` — every failure point on the happy path (HTML)
+- `/io <arg>` — real inputs and outputs of a unit (HTML)
+- `/prototype <doc>` — renders a hand-written doc's decisions as an HTML diagram
+- Onboarding: assign a model (and backup) to each `/command`
+- Per-command model routing to `claude -p` / `codex exec` / `agy -p`
+- Usage-window tracking (5-hour / weekly %) with hard block + fallback
+- Deterministic gate scripts (artifacts, claimed files, review verdict consistency, tests, commit-ready, diff, scope)
+- Per-command write permissions and sandbox flags for child agents
+- Bounded fix/revise loops in `/implement`
+- Cross-model `/audit independent`
+- Five hand-written docs (`blueprint/spec.md`, `data_contract.md`, `features.md`, `ux.md`, `ui.md`) + `/plan` → `build-plan.md` + `project-plan.md`
+- Read-only localhost dashboard (`.harness/dashboard/`) — opens right after install; LIVE/STALE strip; now-running, agent tree, sandbox & permissions, blocked models, token spend, subscription windows, feature pipeline, git, gates, files touched, hardware, trace events
 
 The four diagram commands take any free-text argument — a file, a function, a feature, a route, or a description like `/io LLM architecture in agents.py` — read the real code, and open a self-contained HTML diagram from `prototypes/diagrams/`.
 
