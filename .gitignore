@@ -6,3 +6,4 @@ build/
 .sessions-state.json
 sessions.json
 *.tgz
+.playwright-mcp/

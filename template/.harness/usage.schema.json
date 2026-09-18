@@ -1,0 +1,41 @@
+{
+  "$comment": "Shape of blueprint/.state/usage.json, written atomically by the usage poller every 60 s and read by the dashboard and the pre-delegation check. One entry per subscription limit group.",
+  "example": {
+    "polledAt": "2026-09-18T18:00:00Z",
+    "thresholdPercent": 95,
+    "groups": {
+      "claude": {
+        "label": "Claude Code Max",
+        "models": ["claude-fable-5-1", "claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5-20251001"],
+        "fiveHour": { "usedPercent": 21, "resetsAt": "2026-09-18T21:00:00Z" },
+        "weekly": { "usedPercent": 43, "resetsAt": "2026-09-22T09:00:00Z" },
+        "blocked": false,
+        "reason": null
+      },
+      "codex": {
+        "label": "ChatGPT / Codex",
+        "models": ["gpt-5.5"],
+        "fiveHour": { "usedPercent": 96, "resetsAt": "2026-09-18T20:10:00Z" },
+        "weekly": { "usedPercent": 30, "resetsAt": "2026-09-23T00:00:00Z" },
+        "blocked": true,
+        "reason": "fiveHour 96% >= 95%"
+      },
+      "agy-gemini": {
+        "label": "Antigravity — Gemini models",
+        "models": ["gemini-3.8-flash-high"],
+        "fiveHour": { "usedPercent": 10, "resetsAt": null },
+        "weekly": { "usedPercent": 12, "resetsAt": null },
+        "blocked": false,
+        "reason": null
+      },
+      "ollama": {
+        "label": "Local Ollama",
+        "models": ["qwen3:4b"],
+        "fiveHour": null,
+        "weekly": null,
+        "blocked": false,
+        "reason": null
+      }
+    }
+  }
+}

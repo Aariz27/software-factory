@@ -13,8 +13,8 @@ Built on AI Blueprint 1.9.0 (unchanged). Everything below is ours. Detail per it
 - [x] 8. Public GitHub repo with attribution to AI Blueprint; installable via `npx github:Aariz27/software-factory`.
 
 ## Pending
-- [ ] 9. **Read-only localhost dashboard** — server + page reading `blueprint/.state/run.json`, the `blueprint/` markdown files, git, and our SQLite trace. Panels: now running, agent tree, sandbox & permissions, blocked models, token spend, git branches/worktrees, feature pipeline, gate results, files touched, hardware. Live-status strip: LIVE/STALE, repo path + last change, CLIs and child agents seen.
-- [ ] 10. **Installer opens the dashboard** right after copying files; onboarding opens it again.
+- [x] 9. **Read-only localhost dashboard** — server + page reading `blueprint/.state/run.json`, the `blueprint/` markdown files, git, and our SQLite trace. Panels: now running, agent tree, sandbox & permissions, blocked models, token spend, git branches/worktrees, feature pipeline, gate results, files touched, hardware. Live-status strip: LIVE/STALE, repo path + last change, CLIs and child agents seen.
+- [x] 10. **Installer opens the dashboard** right after copying files (`--no-dashboard` to skip; `npx create-software-factory dashboard` to restart). Onboarding re-open: pending with 11.
 - [ ] 11. **Onboarding** (`/onboard` extension) — detect logged-in CLIs, read the 22 model cards, assign one model per `/` command, write to `blueprint/config.json`.
 - [ ] 12. **`sf run` wrapper** — launches `claude -p` / `codex exec` / `agy -p` / Ollama with the assigned model, streams their JSON output, logs every tool call + tokens + flags to SQLite, assigns unique session IDs.
 - [ ] 13. **Per-command model routing** — each `SKILL.md` reads `config.json` and delegates through the wrapper when the assigned model is not the host.

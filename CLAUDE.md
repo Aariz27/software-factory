@@ -5,14 +5,17 @@ npm package that installs the Software Factory workflow into a project. `templat
 ## Layout
 - `template/` — AI Blueprint 1.9.0 files (unchanged) + our skills. `.claude/skills/` and `.agents/skills/` must stay byte-identical except Blueprint's `disable-model-invocation` frontmatter line.
 - `bin/` — installer. Plain Node ESM, no dependencies. Keep it that way.
+- `template/.harness/` — our runtime pieces installed into projects: `dashboard/` (server.mjs + index.html, read-only, no deps, polls every 2 s), `schema.sql` (trace.db contract), `usage.schema.json` (usage.json contract). Hooks and the `sf run` wrapper will land here too.
 - `plan.md`, `features.md` — design docs, root only.
 
 ## Rules
 - Never edit Blueprint's own files in `template/` to change behaviour; add new skills/scripts beside them so an upstream update can be re-applied.
 - A new skill goes into BOTH `template/.claude/skills/<name>/` and `template/.agents/skills/<name>/`.
-- Test the installer with `node bin/create-software-factory.js <scratch-dir> --dry-run` before committing.
+- Test the installer with `node bin/create-software-factory.js <scratch-dir> --dry-run` before committing. Test the dashboard with `node template/.harness/dashboard/server.mjs <scratch-dir> --port 4799` then `curl localhost:4799/api/state`.
 - No AI attribution lines in commits.
 
 ## Lab notes
+- Trace/usage data can be seeded for dashboard testing: `run-state.mjs start …` for run.json, the `example` in usage.schema.json for usage.json, and `schema.sql` + a few INSERTs via node:sqlite for trace.db.
+- `git branch --format` does not expand `%x1f` (only `git log` does); use a literal separator.
 - Blueprint's stock `manifest.json` is not shipped; the installer regenerates it with our own schema.
 - The npm name `create-sf` is taken; this package is `create-software-factory`.

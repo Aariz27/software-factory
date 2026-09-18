@@ -14,7 +14,7 @@ This package is **[AI Blueprint](https://github.com/aiblueprinthq/ai-blueprint) 
 
 | Addition | Status |
 |---|---|
-| `npx create-software-factory` installer with CLI detection | done |
+| `npx create-software-factory` installer with CLI detection; starts the dashboard and opens it in the browser | done |
 | `/control-flow <arg>` — execution-order diagram (HTML) | done |
 | `/data-flow <arg>` — client/server data-movement diagram (HTML) | done |
 | `/error-flow <arg>` — every failure point on the happy path (HTML) | done |
@@ -29,7 +29,7 @@ This package is **[AI Blueprint](https://github.com/aiblueprinthq/ai-blueprint) 
 | Cross-model `/audit independent` | planned |
 | Five hand-written docs (`blueprint/spec.md`, `data_contract.md`, `features.md`, `ux.md`, `ui.md`) + `/plan` → `build-plan.md` + `project-plan.md` | done |
 | `/prototype <doc>` | planned |
-| Read-only localhost dashboard | planned |
+| Read-only localhost dashboard (`.harness/dashboard/`) — opens right after install; LIVE/STALE strip; now-running, agent tree, sandbox & permissions, blocked models, token spend, subscription windows, feature pipeline, git, gates, files touched, hardware, trace events | done |
 
 The four diagram commands take any free-text argument — a file, a function, a feature, a route, or a description like `/io LLM architecture in agents.py` — read the real code, and open a self-contained HTML diagram from `prototypes/diagrams/`.
 
@@ -42,7 +42,11 @@ npx create-software-factory            # into the current directory
 npx create-software-factory ./my-app   # into another directory
 npx create-software-factory --dry-run  # show what would be written
 npx create-software-factory --force    # overwrite files that already exist
+npx create-software-factory --no-dashboard   # install without starting the dashboard
+npx create-software-factory dashboard  # (re)start the dashboard for an installed project, http://localhost:4747
 ```
+
+The dashboard is read-only and model-free: every number comes from files on disk (`blueprint/`, `blueprint/.state/run.json`, `usage.json`, `trace.db`), `git`, and the process table, re-read on every 2-second poll. If the server stops, the header turns STALE. The trace schema is `.harness/schema.sql`; the usage file shape is `.harness/usage.schema.json`. Needs Node 22.13+ for `node:sqlite` (trace panels say so when it is missing).
 
 Existing files are never overwritten without `--force`. A manifest with a sha256 per managed file is written to `blueprint/.state/manifest.json`.
 

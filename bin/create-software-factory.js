@@ -12,7 +12,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, "..", "package.json"), "utf8"));
@@ -38,11 +38,15 @@ ${Y}   █████╗  ██╗
 `;
 
 function parseArgs(argv) {
-  const opts = { target: process.cwd(), force: false, dryRun: false, help: false };
-  for (const a of argv) {
+  const opts = { target: process.cwd(), force: false, dryRun: false, help: false, dashboard: true, port: 4747, command: "install" };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
     if (a === "--force") opts.force = true;
     else if (a === "--dry-run") opts.dryRun = true;
+    else if (a === "--no-dashboard") opts.dashboard = false;
+    else if (a === "--port") opts.port = Number(argv[++i]);
     else if (a === "--help" || a === "-h") opts.help = true;
+    else if (a === "dashboard" && i === 0) opts.command = "dashboard";
     else if (a.startsWith("-")) throw new Error(`unknown flag: ${a}`);
     else opts.target = resolve(a);
   }
@@ -85,7 +89,12 @@ function main() {
   const opts = parseArgs(process.argv.slice(2));
   console.log(BANNER);
   if (opts.help) {
-    console.log(`  Usage: npx create-software-factory [target-dir] [--force] [--dry-run]\n`);
+    console.log(`  Usage: npx create-software-factory [target-dir] [--force] [--dry-run] [--no-dashboard] [--port N]
+         npx create-software-factory dashboard [target-dir] [--port N]   start the read-only dashboard for an installed project\n`);
+    return;
+  }
+  if (opts.command === "dashboard") {
+    startDashboard(opts.target, opts.port, { detached: false, open: true });
     return;
   }
 
@@ -148,6 +157,27 @@ function main() {
     4. Run /onboard, then /overview, then /feature → /implement → /check → /audit → /complete.
     5. Diagrams: /control-flow, /data-flow, /error-flow, /io <file | function | feature>.
 `);
+
+  if (opts.dashboard && !opts.dryRun) {
+    startDashboard(target, opts.port, { detached: true, open: true });
+  } else if (opts.dashboard) {
+    console.log(`  ${D}dashboard not started in dry run${X}\n`);
+  }
+}
+
+// Starts .harness/dashboard/server.mjs from the installed copy in the target.
+// detached=true: keeps running after this installer exits, so the page the
+// browser just opened stays live. `npx create-software-factory dashboard`
+// runs it in the foreground instead.
+function startDashboard(target, port, { detached, open }) {
+  const script = join(target, ".harness", "dashboard", "server.mjs");
+  if (!existsSync(script)) throw new Error(`dashboard not installed at ${script}`);
+  const args = [script, target, "--port", String(port), ...(open ? ["--open"] : [])];
+  const child = spawn(process.execPath, args, detached ? { detached: true, stdio: "ignore" } : { stdio: "inherit" });
+  if (detached) {
+    child.unref();
+    console.log(`  ${B}Dashboard${X}  ${G}http://localhost:${port}${X}  ${D}(pid ${child.pid}; restart later with: npx create-software-factory dashboard)${X}\n`);
+  }
 }
 
 try {
