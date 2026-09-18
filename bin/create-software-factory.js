@@ -143,9 +143,10 @@ function main() {
   console.log(`
   ${B}Next${X}
     1. Open this project in Claude Code or Codex.
-    2. Fill in blueprint/project-plan.md and blueprint/build-plan.md (or run /discovery).
-    3. Run /onboard, then /overview, then /feature to start the loop.
-    4. Diagrams: /control-flow, /data-flow, /error-flow, /io <file | function | feature>.
+    2. Write the five docs by hand in blueprint/: spec.md, data_contract.md, features.md, ux.md, ui.md.
+    3. Run /plan  → build-plan.md + project-plan.md from those docs.
+    4. Run /onboard, then /overview, then /feature → /implement → /check → /audit → /complete.
+    5. Diagrams: /control-flow, /data-flow, /error-flow, /io <file | function | feature>.
 `);
 }
 

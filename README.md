@@ -27,7 +27,8 @@ This package is **[AI Blueprint](https://github.com/aiblueprinthq/ai-blueprint) 
 | Per-command write permissions and sandbox flags for child agents | planned |
 | Bounded fix/revise loops in `/implement` | planned |
 | Cross-model `/audit independent` | planned |
-| `/plan` from five hand-written docs; `/prototype <doc>` | planned |
+| Five hand-written docs (`blueprint/spec.md`, `data_contract.md`, `features.md`, `ux.md`, `ui.md`) + `/plan` → `build-plan.md` + `project-plan.md` | done |
+| `/prototype <doc>` | planned |
 | Read-only localhost dashboard | planned |
 
 The four diagram commands take any free-text argument — a file, a function, a feature, a route, or a description like `/io LLM architecture in agents.py` — read the real code, and open a self-contained HTML diagram from `prototypes/diagrams/`.
